@@ -1,0 +1,61 @@
+body { 
+  margin: 0; 
+  padding: 0; 
+  font-family: Helvetica, sans-serif;
+}
+
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.popupHeader {
+  font-weight: bold;
+  color: gray;
+  font-size: 110%;
+}
+
+.popupDetails {
+  font-weight: normal;
+  color: gray;
+}
+
+
+.title {
+    height: 100px;
+    color: black;
+	font-size: 200%;
+}
+
+br {
+    line-height: 20px;
+ }
+
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    border-radius: 5px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #000;
+}
+
+.legend {
+	width: 125px;
+    line-height: 18px;
+    color: #555;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}

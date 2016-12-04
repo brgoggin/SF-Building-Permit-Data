@@ -1,0 +1,2 @@
+var unitcats = {0: {'label': '0&ndash;50', 'color': '#EFF3FF'}, 1: {'label': '51&ndash;200', 'color': '#BDD7E7'}, 2: {'label': '201&ndash;500', 'color': '#6BAED6'}, 3: {'label': '501&ndash;2,000', 'color': 
+'#3182BD'}, 4: {'label': '>2,000', 'color': '#08519C'}};

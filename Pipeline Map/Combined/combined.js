@@ -14,8 +14,8 @@ var catProps = unitcats;
 var catName = 'unitcat';
 
 // Title Text Options 
-var current_unitDesc = '<span><b>Proposed Residential Development</b></span><span>Click any development for details.</span><span><button onclick="javascript:switchData();">Recently Completed Development</button>';
-var recent_unitDesc = '<span><b>Recently Completed Residential Development</b></span><span>Click any development for details.</span><span><button onclick="javascript:switchData();">Currently Proposed Development</button>';
+var current_unitDesc = '<span><b>SF Residential Development: Currently Proposed</b></span><span>Click any development for details.</span><span><button onclick="javascript:switchData();">Switch to: Recently Completed</button>';
+var recent_unitDesc = '<span><b>SF Residential Development: Recently Completed</b></span><span>Click any development for details.</span><span><button onclick="javascript:switchData();">Switch to: Currently Proposed</button>';
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -34,7 +34,7 @@ function createFeatures() {
 	var overlayDesc = document.getElementById('overlay-desc');
 	if (dev_options == 'recent') {descText = recent_unitDesc;} else { descText = current_unitDesc; }
 	//if they're not viewing this in an iframe, link to my blog post
-	if (inIframe()) { descText += '</span>' } else { descText += ' <a href="http://geoffboeing.com/2015/11/landscape-us-rents/">More Info</a></span>' }
+	if (inIframe()) { descText += '</span>' } else { descText += ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a></span>' }
 	overlayDesc.innerHTML = descText;
 
 	//specify what the circle markers should look like (radius and fill color are dynamically set later)
@@ -125,6 +125,7 @@ function createFeatures() {
                    '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
 			       '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
 				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
+				   '<br /><img src="' + props.google_image + '" >'  +
                    '</div>';
 			   }
 	     else {
@@ -134,6 +135,7 @@ function createFeatures() {
                    '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
 			 	   '<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
 				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
+			 	   '<br /><img src="' + props.google_image + '" >'  +
                    '</div>';
 			   }
 			
@@ -188,7 +190,7 @@ function keys(myObj) {//extract keys from obj
 
 legend = L.control({position: 'bottomright'});
 legend.onAdd = function (map) {
-    var title = 'Net Units'
+    var title = 'Net Units Added'
     var div = L.DomUtil.create('div', 'overlay legend');
     div.innerHTML = '<h4>' + title + '</h4>';
     //loop from high to low to put legend ranges in descending order

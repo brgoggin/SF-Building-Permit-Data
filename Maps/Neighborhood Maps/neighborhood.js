@@ -32,15 +32,6 @@ CREATE DATA OVERLAY
 ***********************************************/
 //create a function to create all the styles and functionality for the point data so it's reusable when we switch datasets dynamically
 function createFeatures() {
-	// Create functions for color buckets 
-	function getColor(d) {
-	    return d > 2000 ? '#A50F15' :
-	           d > 500  ? '#DE2D26' :
-	           d > 200  ? '#FB6A4A' :
-	           d > 50  ? '#FCAE91' :
-						  '#FEE5D9' ;
-	}
-	
 
 	function style(feature) {
 		var category = feature.properties[catName];
@@ -49,7 +40,7 @@ function createFeatures() {
 	        fillColor: color,
 	        weight: 2,
 	        opacity: 1,
-	        color: 'white',
+	        color: 'black',
 	        dashArray: '3',
 	        fillOpacity: 0.7
 	    };
@@ -94,7 +85,7 @@ function createFeatures() {
 
 	    layer.setStyle({
 	        weight: 5,
-	        color: '#666',
+	        color: 'black',
 	        dashArray: '',
 	        fillOpacity: 0.7
 	    });

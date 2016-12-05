@@ -30,12 +30,30 @@ Section 2: Generate Map Elements (Change with button)
 
 //create a function to create all the styles and functionality for the point data so it's reusable when we switch datasets dynamically
 function createFeatures() {
-	//set the overlay description based on whether we on looking at rent categories or switched datasets to rent change categories
-	var overlayDesc = document.getElementById('overlay-desc');
-	if (dev_options == 'recent') {descText = recent_unitDesc;} else { descText = current_unitDesc; }
-	//if they're not viewing this in an iframe, link to my blog post
-	if (inIframe()) { descText += '</span>' } else { descText += ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a></span>' }
-	overlayDesc.innerHTML = descText;
+	//Define Title
+	var title1 = '<h4>SF Residential Development: Recently Completed</h4>'
+	var title2 = '<h4>SF Residential Development: Currently Proposed</h4>'
+
+	if (dev_options == 'recent') {title = title1;} else {title = title2;}
+
+	//Create popup control for when hovering over polygon
+	var button1 = '<button onclick="javascript:switchData();">Switch to: Currently Proposed</button>'
+	var button2 = '<button onclick="javascript:switchData();">Switch to: Recently Completed</button>'
+
+	if (dev_options == 'recent') {button = button1;} else {button = button2;}
+
+	catchphrase = 'Click any dot for details.'
+
+	info = L.control();
+
+	info.onAdd = function (map) {
+		var div = L.DomUtil.create('div', 'info');
+		div.innerHTML = title  + catchphrase + '<br>'+ button + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>');
+		return div;
+	};
+
+	info.addTo(map);
+
 
 	//specify what the circle markers should look like (radius and fill color are dynamically set later)
 	var markerStyle = {radius: null, fillOpacity: 0.7, color: '#666666', opacity: 1, weight: 1, fillColor: null};
@@ -148,6 +166,29 @@ function createFeatures() {
 	    map.setView(latlng, zoomLevel);
 
 	}//end of defining interactions: clicks and hovers
+	
+	//************************************************************************
+	//create legend
+	//************************************************************************
+	function keys(myObj) {//extract keys from obj
+	    var ks = [];
+	    for (var k in myObj) {if (myObj.hasOwnProperty(k)) {ks.push(k);}}
+	    return ks;
+	}
+
+	legend = L.control({position: 'bottomright'});
+	legend.onAdd = function (map) {
+	    var title = 'Net Units Added'
+	    var div = L.DomUtil.create('div', 'info legend');
+	    div.innerHTML = '<h4>' + title + '</h4>';
+	    //loop from high to low to put legend ranges in descending order
+	    for (var i=keys(unitcats).length-1; i>=0; i--) { 
+	        div.innerHTML += '<i style="background:' + unitcats[i]['color'] + '"></i> ' + unitcats[i]['label'] + '<br>';
+	    }
+	    return div;
+	};
+	legend.addTo(map);//end of legend creation
+
 
 }//end of createFeatures()
 
@@ -160,6 +201,8 @@ function switchData() {
         dev_options = 'current';
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
+		map.removeControl(info);
+		map.removeControl(legend);
 	    createFeatures();
 	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
 	    map.addLayer(geojsonLayer);  
@@ -168,6 +211,8 @@ function switchData() {
         dev_options = 'recent';
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
+		map.removeControl(info);
+		map.removeControl(legend);
 	    createFeatures();
 	    geojsonLayer = L.geoJson(dataset, layerOptions); 
 	    map.addLayer(geojsonLayer); 
@@ -179,27 +224,7 @@ function switchData() {
 Section 3. CREATE LEGEND AND ADD DATA TO MAP
 ***********************************************************/
 
-//************************************************************************
-//create legend
-//************************************************************************
-function keys(myObj) {//extract keys from obj
-    var ks = [];
-    for (var k in myObj) {if (myObj.hasOwnProperty(k)) {ks.push(k);}}
-    return ks;
-}
 
-legend = L.control({position: 'bottomright'});
-legend.onAdd = function (map) {
-    var title = 'Net Units Added'
-    var div = L.DomUtil.create('div', 'overlay legend');
-    div.innerHTML = '<h4>' + title + '</h4>';
-    //loop from high to low to put legend ranges in descending order
-    for (var i=keys(unitcats).length-1; i>=0; i--) { 
-        div.innerHTML += '<i style="background:' + unitcats[i]['color'] + '"></i> ' + unitcats[i]['label'] + '<br>';
-    }
-    return div;
-};
-legend.addTo(map);//end of legend creation
 
 // create the layer and add to map
 var geojsonLayer = L.geoJson(dataset, layerOptions); 

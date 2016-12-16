@@ -46,7 +46,7 @@ br {
     border-radius: 5px;
 }
 .info h4 {
-    margin: 0 0 5px;
+    margin: 0 0 4px;
     color: #000;
 }
 
@@ -54,3 +54,6 @@ br {
     z-index: 9;
 }
 
+.description {
+	display: none;
+}

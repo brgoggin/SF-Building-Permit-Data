@@ -138,32 +138,41 @@ function createFeatures() {
 		
 		if (dev_options == 'recent') {
 			var popupContent = '<div class="popup-container">' + 
-                   '<h4>' + props.address + '</h4>' + 
+                   '<span class="popup-label"><b>' + props.address + '</b></span>' +
                    '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
                    '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
 			       '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
 				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
 				   '<br /><img src="' + props.google_image + '" >'  +
+				   '<button>Show Description</button>' +
+				   '<br /><span class="description">' + props.desc + '</span>'  +
                    '</div>';
 			   }
 	     else {
 			 var popupContent = '<div class="popup-container">' + 
-                   '<h4>' + props.address + '</h4>' + 
+                   '<span class="popup-label"><b>' + props.address + '</b></span>' +
                    '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
                    '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
 			 	   '<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
 				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
 			 	   '<br /><img src="' + props.google_image + '" >'  +
+			       '<button>Show Description</button>' +
+			       '<br /><span class="description">' + props.desc + '</span>'  +
                    '</div>';
 			   }
+		
 			
 	    var popup = L.popup().setContent(popupContent).setLatLng(latlng);
 	    target.bindPopup(popup).openPopup(); 
-
+		
 	    //pan to feature and zoom in 1 if map is currently at/above initial zoom
 	    var zoomLevel = map.getZoom();
 	    if (map.getZoom() <= initialZoomLevel) { zoomLevel++; }
 	    map.setView(latlng, zoomLevel);
+		
+		$("button").click(function(){
+			  $(".description").toggle();
+		 });
 
 	}//end of defining interactions: clicks and hovers
 	

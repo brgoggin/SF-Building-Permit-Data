@@ -8,11 +8,6 @@ var initialZoomLevel = 12;
 var layerOptions = null;
 var legend = null;
 
-// Set current input data - either recently completed development or current development. Initialize map with recent. 
-var dev_options = 'recent';
-var catProps = unitcats;
-var catName = 'unitcat';
-
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -27,17 +22,16 @@ Section 2: Generate Map Elements (Change with button)
 
 //create a function to create all the styles and functionality for the point data so it's reusable when we switch datasets dynamically
 function createFeatures() {
+	
 	//Define Title
-	var title1 = '<h4>SF Residential Development: Recently Completed</h4>'
-	var title2 = '<h4>SF Residential Development: Currently Proposed</h4>'
+	var title1 = '<h4>SF Residential Development: Recently Completed</h4>';
 
-	if (dev_options == 'recent') {title = title1;} else {title = title2;}
+	title = title1;
 
 	//Create popup control for when hovering over polygon
-	var button1 = '<button onclick="javascript:switchData();">Switch to: Currently Proposed</button>'
-	var button2 = '<button onclick="javascript:switchData();">Switch to: Recently Completed</button>'
+	var button1 = '<button onclick="javascript:switchData();">Switch to: Currently Proposed</button>';
 
-	if (dev_options == 'recent') {button = button1;} else {button = button2;}
+	button = button1;
 
 	catchphrase = 'Click any dot for details.'
 
@@ -133,32 +127,14 @@ function createFeatures() {
 	    var latlng = target._latlng;
 	    var props = target.feature.properties;
 		
-		if (dev_options == 'recent') {
-			var popupContent = '<div class="popup-container">' + 
-                   '<span class="popup-label"><b>' + props.address + '</b></span>' +
-                   '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
-                   '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
-			       '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
-				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
-				   '<br /><img src="' + props.google_image + '" >'  +
-				   '<button>Show Description</button>' +
-				   '<br /><span class="description">' + props.desc + '</span>'  +
-                   '</div>';
-			   }
-	     else {
-			 var popupContent = '<div class="popup-container">' + 
-                   '<span class="popup-label"><b>' + props.address + '</b></span>' +
-                   '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
-                   '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
-			 	   '<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
-				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
-			 	   '<br /><img src="' + props.google_image + '" >'  +
-			       '<button>Show Description</button>' +
-			       '<br /><span class="description">' + props.desc + '</span>'  +
-                   '</div>';
-			   }
-		
-			
+
+		var popupContent = '<div class="popup-container">' + 
+               '<span class="popup-label"><b>' + props.address + '</b></span>' +
+               '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
+               '<br /><span class="popup-label">Net Affordable Units: ' + props.affordable_units + '</span>'  +
+               '</div>';
+
+
 	    var popup = L.popup().setContent(popupContent).setLatLng(latlng);
 	    target.bindPopup(popup).openPopup(); 
 		
@@ -167,9 +143,6 @@ function createFeatures() {
 	    if (map.getZoom() <= initialZoomLevel) { zoomLevel++; }
 	    map.setView(latlng, zoomLevel);
 		
-		$("button").click(function(){
-			  $(".description").toggle();
-		 });
 
 	}//end of defining interactions: clicks and hovers
 	
@@ -201,35 +174,10 @@ function createFeatures() {
 //create all the styles and functionality for the point data
 createFeatures();
 
-//switch between median rent and change in rent datasets. 
-function switchData() {
-    if (dev_options == 'recent') {
-        dev_options = 'current';
-	    //remove the old data and legend from the map and add the other dataset
-	    map.removeLayer(geojsonLayer);
-		map.removeControl(info);
-		map.removeControl(legend);
-	    createFeatures();
-	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
-	    map.addLayer(geojsonLayer);  
-    }
-    else {
-        dev_options = 'recent';
-	    //remove the old data and legend from the map and add the other dataset
-	    map.removeLayer(geojsonLayer);
-		map.removeControl(info);
-		map.removeControl(legend);
-	    createFeatures();
-	    geojsonLayer = L.geoJson(dataset, layerOptions); 
-	    map.addLayer(geojsonLayer); 
-    }     
-
-}
 
 /**********************************************************
 Section 3. CREATE LEGEND AND ADD DATA TO MAP
 ***********************************************************/
-
 
 
 // create the layer and add to map

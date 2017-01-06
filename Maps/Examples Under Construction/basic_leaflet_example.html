@@ -5,43 +5,23 @@
     <title>Basic Example</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
-
+	<link rel='stylesheet' href='example.css' />
     <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+	<script src="countries.js"></script>
   <style>
     #map {
-      width:1200px;
-      height:400px;
+	    position: absolute;
+	    top: 0;
+	    bottom: 0;
+	    left: 0;
+	    width: 100%;
     }
 	
-	#overlay {
-	    width: 200px;
-	    position: absolute;
-	    top: 10px;
-	    right: 10px;
-	    background: rgba(255,255,255,0.85);
-	    padding: 12px;
-	    color: #555;
-	}
-
-	#overlay-desc span {
-	    display: block;
-	    font-size: 13px;
-	    font-weight: normal;
-	    margin-top: 3pt;
-	}
-	#overlay-desc span b {
-	    color: #000;
-	    font-size: 15px;
-	    font-weight: bold;
-	}
   </style>
 </head>
 <body>
   <div id='map'></div>
-  <div id='overlay' class='overlay'>
-      <div id='overlay-desc'></div> 
-  </div>
-  
+
 <script type="text/javascript">
   
  // create the Leaflet map container
@@ -53,23 +33,6 @@
   var basemapProperties = {minZoom: 2, maxZoom: 16, attribution: basemapAttribution};
   L.tileLayer(basemapUrl, basemapProperties).addTo(mymap);
   
-function createFeatures() {
-
-	var popup = L.popup();
-
-	function onMapClick(e) {
-	    popup
-	        .setLatLng(e.latlng)
-	        .setContent("You clicked the map at " + e.latlng.toString())
-	        .openOn(mymap);
-	}
-
-mymap.on('click', onMapClick);
-
-}//end of createFeatures()
-
-//create all the styles and functionality for the point data
-createFeatures();
 
 //example code for filtering
 var someFeatures = [{
@@ -86,7 +49,7 @@ var someFeatures = [{
     "type": "Feature",
     "properties": {
         "name": "Busch Field",
-        "show_on_map": false
+        "show_on_map": true
     },
     "geometry": {
         "type": "Point",
@@ -94,29 +57,51 @@ var someFeatures = [{
     }
 }];
 
-//example of how we can edit JSON attributes later
-someFeatures[1].properties.show_on_map = true ;
+menu = L.control({position: 'topright'});
 
-L.geoJSON(someFeatures, {
+menu.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML = '<select id="mySelect" onchange="myFunction()"><option value="1">show</option><option value="2">not show</option></select>';
+	div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
+    return div;
+	};
+	
+menu.addTo(mymap);
+
+function myFunction() {
+	var x = document.getElementById("mySelect").value;
+	if (x == "1") {
+		mymap.removeLayer(initlayer);
+		for (i = 0; i < someFeatures.length; i++) {
+		    someFeatures[i].properties.show_on_map = true;
+		}
+		initlayer = L.geoJSON(someFeatures, {
+		    filter: function(feature, layer) {
+		        return feature.properties.show_on_map;
+		    }
+		});
+		initlayer.addTo(mymap);
+	} else {
+		mymap.removeLayer(initlayer);
+		for (i = 0; i < someFeatures.length; i++) {
+		    someFeatures[i].properties.show_on_map = false;
+		}
+		initlayer = L.geoJSON(someFeatures, {
+		    filter: function(feature, layer) {
+		        return feature.properties.show_on_map;
+		    }
+		});
+		initlayer.addTo(mymap);
+	}
+}
+
+initlayer = L.geoJSON(someFeatures, {
     filter: function(feature, layer) {
         return feature.properties.show_on_map;
     }
-}).addTo(mymap);
-
-var MyDemoClass = L.Class.extend({
-
-    // A property with initial value = 42
-    myDemoProperty: 42,   
-
-    // A method 
-    myDemoMethod: function() { return this.myDemoProperty; }
-    
 });
 
-var myDemoInstance = new MyDemoClass();
-
-// This will output "42" to the development console
-console.log( myDemoInstance.myDemoMethod() );   
+initlayer.addTo(mymap);
 
 </script>
 

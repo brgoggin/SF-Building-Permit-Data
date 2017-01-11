@@ -8,6 +8,12 @@ var initialZoomLevel = 12;
 var layerOptions = null;
 var legend = null;
 
+// Set color options for dots and legend
+var catProps = unitcats;
+var catName = 'unitcat';
+
+//initialize with 2015 construction
+var year = 2015;
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -22,24 +28,22 @@ Section 2: Generate Map Elements (Change with button)
 
 //create a function to create all the styles and functionality for the point data so it's reusable when we switch datasets dynamically
 function createFeatures() {
-	
-	//Define Title
-	var title1 = '<h4>SF Residential Development: Recently Completed</h4>';
 
-	title = title1;
+	//Define Title
+	var title = '<h4>SF Residential Development: Recently Completed</h4>';
+	
+	var button = '<button onclick="updateMap();">Update Map</button>'
 
 	//Create popup control for when hovering over polygon
-	var button1 = '<button onclick="javascript:switchData();">Switch to: Currently Proposed</button>';
+	var menu = '<input list="hosting-plan" type="text" value='+ year + ' id="mySelect"><datalist id="hosting-plan"><option value="2011"/><option value="2012"/><option value="2013"/><option value="2014"/><option value="2015"/></datalist>';
 
-	button = button1;
+	var catchphrase = 'Click any dot for details.'
 
-	catchphrase = 'Click any dot for details.'
-
-	info = L.control();
+	var info = L.control();
 
 	info.onAdd = function (map) {
 		var div = L.DomUtil.create('div', 'info');
-		div.innerHTML = title  + catchphrase + '<br>'+ button + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>');
+		div.innerHTML = title  + catchphrase + '<br>Year: '+ menu + button + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2016/12/11/mapping-residential-development-in-san-francisco/">More Info</a>');
 		return div;
 	};
 
@@ -53,17 +57,22 @@ function createFeatures() {
 
 	// specify how to load the individual features: give each its styling and a text popup
 	layerOptions = {
+		filter: filter,
 		pointToLayer: pointToLayer,
 	    onEachFeature: onEachFeature
 	};
-	
-	
+
+
 	// function to add data points to map layer with proper styling
 	function pointToLayer(feature, latlng) {
 			var category = feature.properties[catName];
 			markerStyle.fillColor = catProps[category].color;
 			markerStyle.radius = getRadius();
 	        return L.circleMarker(latlng, markerStyle);
+	}
+
+	function filter(feature, layer) {
+		return feature.properties.year == year;
 	}
 
 	function getRadius() {
@@ -132,6 +141,7 @@ function createFeatures() {
                '<span class="popup-label"><b>' + props.address + '</b></span>' +
                '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
                '<br /><span class="popup-label">Net Affordable Units: ' + props.affordable_units + '</span>'  +
+			   '<br /><span class="popup-label">Year: ' + props.year + '</span>'  +
                '</div>';
 
 
@@ -175,10 +185,17 @@ function createFeatures() {
 createFeatures();
 
 
+//Update Map features based on selection
+function updateMap() {
+  year = document.getElementById("mySelect").value;
+  map.removeLayer(geojsonLayer);
+  geojsonLayer = L.geoJson(dataset, layerOptions); 
+  map.addLayer(geojsonLayer);
+}
+
 /**********************************************************
 Section 3. CREATE LEGEND AND ADD DATA TO MAP
 ***********************************************************/
-
 
 // create the layer and add to map
 var geojsonLayer = L.geoJson(dataset, layerOptions); 

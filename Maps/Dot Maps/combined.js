@@ -34,8 +34,8 @@ function createFeatures() {
 	if (dev_options == 'recent') {title = title1;} else {title = title2;}
 
 	//Create popup control for when hovering over polygon
-	var button1 = '<button onclick="javascript:switchData();">Switch to: Currently Proposed</button>'
-	var button2 = '<button onclick="javascript:switchData();">Switch to: Recently Completed</button>'
+	var button1 = '<button onclick="switchData();">Switch to: Currently Proposed</button>'
+	var button2 = '<button onclick="switchData();">Switch to: Recently Completed</button>'
 
 	if (dev_options == 'recent') {button = button1;} else {button = button2;}
 
@@ -45,7 +45,7 @@ function createFeatures() {
 
 	info.onAdd = function (map) {
 		var div = L.DomUtil.create('div', 'info');
-		div.innerHTML = title  + catchphrase + '<br>'+ button + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>');
+		div.innerHTML = title  + catchphrase + '<br>'+ button + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2016/12/11/mapping-residential-development-in-san-francisco/">More Info</a>');
 		return div;
 	};
 
@@ -201,15 +201,15 @@ function createFeatures() {
 //create all the styles and functionality for the point data
 createFeatures();
 
-//switch between median rent and change in rent datasets. 
+//switch between recently completed and currently proposed development
 function switchData() {
     if (dev_options == 'recent') {
         dev_options = 'current';
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
-		map.removeControl(info);
-		map.removeControl(legend);
-	    createFeatures();
+		//map.removeControl(info);
+		//map.removeControl(legend);
+	    //createFeatures();
 	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
 	    map.addLayer(geojsonLayer);  
     }
@@ -217,9 +217,9 @@ function switchData() {
         dev_options = 'recent';
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
-		map.removeControl(info);
-		map.removeControl(legend);
-	    createFeatures();
+		//map.removeControl(info);
+		//map.removeControl(legend);
+	    //createFeatures();
 	    geojsonLayer = L.geoJson(dataset, layerOptions); 
 	    map.addLayer(geojsonLayer); 
     }     
@@ -229,7 +229,6 @@ function switchData() {
 /**********************************************************
 Section 3. CREATE LEGEND AND ADD DATA TO MAP
 ***********************************************************/
-
 
 
 // create the layer and add to map

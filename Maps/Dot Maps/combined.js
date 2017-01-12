@@ -157,7 +157,7 @@ function createFeatures() {
 			       '<br /><span class="description">' + props.desc + '</span>'  +
                    '</div>';
 			   }
-		
+
 			
 	    var popup = L.popup().setContent(popupContent).setLatLng(latlng);
 	    target.bindPopup(popup).openPopup(); 
@@ -167,9 +167,13 @@ function createFeatures() {
 	    if (map.getZoom() <= initialZoomLevel) { zoomLevel++; }
 	    map.setView(latlng, zoomLevel);
 		
+		//toggle description on and off when user clicks button
 		$("button").click(function(){
 			  $(".description").toggle();
 		 });
+		 
+		 //updates popup content so that toggling works when opening popup a second time in the same session
+		 target.updatePopup();
 
 	}//end of defining interactions: clicks and hovers
 	
@@ -207,9 +211,9 @@ function switchData() {
         dev_options = 'current';
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
-		//map.removeControl(info);
-		//map.removeControl(legend);
-	    //createFeatures();
+		map.removeControl(info);
+		map.removeControl(legend);
+	    createFeatures();
 	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
 	    map.addLayer(geojsonLayer);  
     }
@@ -217,9 +221,9 @@ function switchData() {
         dev_options = 'recent';
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
-		//map.removeControl(info);
-		//map.removeControl(legend);
-	    //createFeatures();
+		map.removeControl(info);
+		map.removeControl(legend);
+	    createFeatures();
 	    geojsonLayer = L.geoJson(dataset, layerOptions); 
 	    map.addLayer(geojsonLayer); 
     }     

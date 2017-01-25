@@ -129,23 +129,26 @@ function createFeatures() {
 	    target.setStyle(markerStyle);
 	}
 
-
+	var panorama;
 	//on click, pan/zoom to feature and show popup
 	function clickFeature(e) {
 	    var target = e.target;
 	    var latlng = target._latlng;
 	    var props = target.feature.properties;
-		
+		var lat_lon = target.feature.geometry.coordinates;
+		var lat = lat_lon[1];
+		var lon = lat_lon[0];
+		var coordinates = {lat: lat, lng: lon};
 
 		var popupContent = '<div class="popup-container">' + 
                '<span class="popup-label"><b>' + props.address + '</b></span>' +
                '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
                '<br /><span class="popup-label">Net Affordable Units: ' + props.affordable_units + '</span>'  +
-			   '<br /><span class="popup-label">Year: ' + props.year + '</span>'  +
+			   '<br /><span id = "t_text" class="popup-label">' + props.year + '</span>' +
+			   '<br /><div id = "pano" class = "pano"></div>'  +
                '</div>';
 
-
-	    var popup = L.popup().setContent(popupContent).setLatLng(latlng);
+	    var popup = L.popup({closeOnClick: false}).setContent(popupContent).setLatLng(latlng);
 	    target.bindPopup(popup).openPopup(); 
 		
 	    //pan to feature and zoom in 1 if map is currently at/above initial zoom
@@ -153,6 +156,20 @@ function createFeatures() {
 	    if (map.getZoom() <= initialZoomLevel) { zoomLevel++; }
 	    map.setView(latlng, zoomLevel);
 		
+		//Google Panorama Element
+		var panoelement = document.getElementsByClassName("pano");
+		var panorama = new google.maps.StreetViewPanorama(
+			panoelement[panoelement.length - 1], {
+				position: coordinates,
+				pov: {
+					heading: 34,
+					pitch: 10
+				}, 
+				addressControl: false, 
+				source: 'outdoor'
+			});
+
+		 target.updatePopup();
 
 	}//end of defining interactions: clicks and hovers
 	
@@ -177,7 +194,6 @@ function createFeatures() {
 	    return div;
 	};
 	legend.addTo(map);//end of legend creation
-
 
 }//end of createFeatures()
 

@@ -11,6 +11,10 @@ body {
   width: 100%;
 }
 
+#pano {
+    height: 70%;
+  }
+
 br {
     line-height: 20px;
  }
@@ -19,6 +23,7 @@ br {
     font-weight: normal;
     color: #777;
 	width: 200px;
+	height: 400px;
 }
 .popup-label {
     font-weight: bold;

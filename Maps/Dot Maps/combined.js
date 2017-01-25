@@ -39,8 +39,9 @@ function createFeatures() {
 
 	if (dev_options == 'recent') {button = button1;} else {button = button2;}
 
-	catchphrase = 'Click any dot for details.'
-
+	var catchphrase = 'Click any dot for details.'
+	
+	//Add title box
 	info = L.control();
 
 	info.onAdd = function (map) {
@@ -50,8 +51,18 @@ function createFeatures() {
 	};
 
 	info.addTo(map);
+	
+	//Add source of data box
+	source = L.control({position: 'bottomleft'});
 
+	source.onAdd = function (map) {
+		var div = L.DomUtil.create('div', 'info');
+		div.innerHTML = 'Source: <a href="http://sf-planning.org/pipeline-report">SF Development Pipeline</a>';
+		return div;
+	};
 
+	source.addTo(map);
+	
 	//specify what the circle markers should look like (radius and fill color are dynamically set later)
 	var markerStyle = {radius: null, fillOpacity: 0.7, color: '#666666', opacity: 1, weight: 1, fillColor: null};
 	var markerStyleHover = {radius: null, fillOpacity: 0.9, color: '#333333', opacity: 1, weight: 3, fillColor: null};
@@ -132,45 +143,62 @@ function createFeatures() {
 	    var target = e.target;
 	    var latlng = target._latlng;
 	    var props = target.feature.properties;
+		var lat_lon = target.feature.geometry.coordinates;
+		var lat = lat_lon[1];
+		var lat_adj = lat_lon[1] + 0.01; //when clicking on dot, adjust view to be just above popup so that whole popup is visible
+		var lon = lat_lon[0];
+		var coordinates = {lat: lat, lng: lon};
 		
 		if (dev_options == 'recent') {
-			var popupContent = '<div class="popup-container">' + 
-                   '<span class="popup-label"><b>' + props.address + '</b></span>' +
-                   '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
-                   '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
-			       '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
-				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
-				   '<br /><img src="' + props.google_image + '" >'  +
-				   '<button>Show Description</button>' +
-				   '<br /><span class="description">' + props.desc + '</span>'  +
-                   '</div>';
+			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
+            '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
+            '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
+	        '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
+		    '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
+			'<div id = "pano" class = "pano"></div>' +
+			'<button>Show Description</button>' +
+			'<br /><span class="description">' + props.desc + '</span>';
 			   }
 	     else {
-			 var popupContent = '<div class="popup-container">' + 
-                   '<span class="popup-label"><b>' + props.address + '</b></span>' +
-                   '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
-                   '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
-			 	   '<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
-				   '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
-			 	   '<br /><img src="' + props.google_image + '" >'  +
-			       '<button>Show Description</button>' +
-			       '<br /><span class="description">' + props.desc + '</span>'  +
-                   '</div>';
+ 			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
+            '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
+            '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
+ 	        '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
+ 		    '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
+ 			'<div id = "pano" class = "pano"></div>' +
+ 			'<button>Show Description</button>' +
+ 			'<br /><span class="description">' + props.desc + '</span>';
 			   }
 
 			
-	    var popup = L.popup().setContent(popupContent).setLatLng(latlng);
+	    var popup = L.popup({closeOnClick: false}).setContent(popupContent).setLatLng(latlng);
 	    target.bindPopup(popup).openPopup(); 
 		
 	    //pan to feature and zoom in 1 if map is currently at/above initial zoom
 	    var zoomLevel = map.getZoom();
 	    if (map.getZoom() <= initialZoomLevel) { zoomLevel++; }
-	    map.setView(latlng, zoomLevel);
+	    map.setView([lat_adj, lon], zoomLevel);
 		
 		//toggle description on and off when user clicks button
+		
 		$("button").click(function(){
 			  $(".description").toggle();
 		 });
+		
+		 
+		 //Google Panorama Element 
+		 var panoelement = document.getElementsByClassName("pano");
+		 var panorama = new google.maps.StreetViewPanorama(
+		 	panoelement[panoelement.length - 1], {
+		 		position: coordinates,
+		 		pov: {
+		 			heading: 34,
+		 			pitch: 10
+		 		}, 
+		 		addressControl: false, 
+		 		source: 'outdoor'
+		 	});
+		 
 		 
 		 //updates popup content so that toggling works when opening popup a second time in the same session
 		 target.updatePopup();
@@ -212,6 +240,7 @@ function switchData() {
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
 		map.removeControl(info);
+		map.removeControl(source);
 		map.removeControl(legend);
 	    createFeatures();
 	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
@@ -222,6 +251,7 @@ function switchData() {
 	    //remove the old data and legend from the map and add the other dataset
 	    map.removeLayer(geojsonLayer);
 		map.removeControl(info);
+		map.removeControl(source);
 		map.removeControl(legend);
 	    createFeatures();
 	    geojsonLayer = L.geoJson(dataset, layerOptions); 

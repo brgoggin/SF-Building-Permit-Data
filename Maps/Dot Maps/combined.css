@@ -11,15 +11,17 @@ body {
   width: 100%;
 }
 
+#pano {
+    height: 50%;
+    color: #777;
+	width: 200px;
+	height: 200px;
+  }
+
 br {
     line-height: 20px;
  }
 
-.popup-container {
-    font-weight: normal;
-    color: #777;
-	width: 200px;
-}
 .popup-label {
     font-weight: bold;
     color: #777;
@@ -56,4 +58,5 @@ br {
 
 .description {
 	display: none;
+	color: #777;
 }

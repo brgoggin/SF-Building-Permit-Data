@@ -163,7 +163,7 @@ function createFeatures() {
  			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
             '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
             '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
- 	        '<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
+			'<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
  		    '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
  			'<div id = "pano" class = "pano"></div>' +
  			'<button>Show Description</button>' +

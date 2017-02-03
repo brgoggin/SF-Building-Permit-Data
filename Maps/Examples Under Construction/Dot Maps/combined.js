@@ -13,6 +13,8 @@ var dev_options = 'recent';
 var catProps = unitcats;
 var catName = 'unitcat';
 
+//initialize map with quarter 2 2016
+var quarter = 'All Quarters';
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -28,16 +30,42 @@ Section 2: Generate Map Elements (Change with button)
 //create a function to create all the styles and functionality for the point data so it's reusable when we switch datasets dynamically
 function createFeatures() {
 	//Define Title
-	var title1 = '<h4>SF Residential Development: Recently Completed</h4>'
-	var title2 = '<h4>SF Residential Development: Currently Proposed</h4>'
-
-	if (dev_options == 'recent') {title = title1;} else {title = title2;}
-
+	var title = '<h4>SF Residential Development</h4>';
+	
+	var button = '<button onclick="updateMap();">Update Map</button>';
+	
 	//Create popup control for when hovering over polygon
-	var button1 = '<button onclick="switchData();">Switch to: Currently Proposed</button>'
-	var button2 = '<button onclick="switchData();">Switch to: Recently Completed</button>'
-
-	if (dev_options == 'recent') {button = button1;} else {button = button2;}
+	
+   var menu = '<select id="mySelect">' +
+	'<optgroup label="Recently Completed">' +
+	'<option value="All Quarters">All Quarters</option>' + 
+    '<option value="Q2-2016">Q2-2016</option>' +
+    '<option value="Q1-2016">Q1-2016</option>' +
+    '<option value="Q4-2015">Q4-2015</option>' +
+    '<option value="Q3-2015">Q3-2015</option>' +
+    '<option value="Q2-2015">Q2-2015</option>' +
+    '<option value="Q1-2015">Q1-2015</option>' +
+    '<option value="Q4-2014">Q4-2014</option>' +
+    '<option value="Q3-2014">Q3-2014</option>' +
+    '<option value="Q2-2014">Q2-2014</option>' +
+	'<option value="Q1-2014">Q1-2014</option>' +
+	'<option value="Q4-2013">Q4-2013</option>' +
+	'<option value="Q3-2013">Q3-2013</option>' +
+	'<option value="Q2-2013">Q2-2013</option>' +
+	'<option value="Q1-2013">Q1-2013</option>' +
+	'<option value="Q4-2012">Q4-2012</option>' +
+    '</optgroup>' +
+	'<optgroup label="Currently Proposed">' +
+	'<option value="All Proposed">All Proposed</option>' +
+	'<option value="CONSTRUCTION">Under Construction</option>' +
+	'<option value="PL APPROVED">PL Approved</option>' +
+	'<option value="PL FILED">PL Filed</option>' +
+	'<option value="BP ISSUED">BP Issued</option>' +
+	'<option value="BP APPROVED">BP Approved</option>' +
+	'<option value="BP FILED">BP Filed</option>' +
+	'<option value="BP REINSTATED">BP Reinstated</option>' +
+	'</optgroup>' +
+    '</select>';
 
 	var catchphrase = 'Click any dot for details.'
 	
@@ -46,7 +74,7 @@ function createFeatures() {
 
 	info.onAdd = function (map) {
 		var div = L.DomUtil.create('div', 'info');
-		div.innerHTML = title  + catchphrase + '<br>'+ button + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2016/12/11/mapping-residential-development-in-san-francisco/">More Info</a>');
+		div.innerHTML = title  + catchphrase + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2016/12/11/mapping-residential-development-in-san-francisco/">More Info.</a>') + '<br>' + menu + button ;
 		return div;
 	};
 
@@ -60,10 +88,30 @@ function createFeatures() {
 
 	// specify how to load the individual features: give each its styling and a text popup
 	layerOptions = {
+		filter: filter,
 		pointToLayer: pointToLayer,
 	    onEachFeature: onEachFeature
 	};
 	
+	//function to filter out data
+	function filter(feature, layer) {
+		if (quarter == "All Quarters") {
+			return true;
+		} else if (quarter == "All Proposed") {
+			return true;
+		} else if (quarter == "CONSTRUCTION" | quarter == "PL FILED" | quarter == "PL APPROVED" | quarter == "BP FILED" | quarter == "BP ISSUED" | quarter == "BP APPROVED" | quarter == "BP REINSTATED") {
+			return feature.properties.status == quarter;
+		} else {
+			var list = [quarter];
+			//check if dot's quarter is in the above list, show if yes
+			if (list.indexOf(feature.properties.quarter) >=0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		//return feature.properties.quarter == quarter;
+	}
 	
 	// function to add data points to map layer with proper styling
 	function pointToLayer(feature, latlng) {
@@ -185,8 +233,7 @@ function createFeatures() {
 		 			heading: 34,
 		 			pitch: 10
 		 		}, 
-		 		addressControl: false, 
-		 		source: 'outdoor'
+		 		addressControl: false
 		 	});
 		 
 		 
@@ -195,8 +242,6 @@ function createFeatures() {
 
 	}//end of defining interactions: clicks and hovers
 	
-
-
 }//end of createFeatures()
 
 //create all the styles and functionality for the point data
@@ -238,25 +283,28 @@ source.addTo(map);
 //************************************************************************
 //Section 4: switch between recently completed and currently proposed development
 //************************************************************************
-function switchData() {
-    if (dev_options == 'recent') {
-        dev_options = 'current';
-	    //remove the old data and legend from the map and add the other dataset
-	    map.removeLayer(geojsonLayer);
-		map.removeControl(info);
-	    createFeatures();
-	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
-	    map.addLayer(geojsonLayer);  
-    }
-    else {
-        dev_options = 'recent';
-	    //remove the old data and legend from the map and add the other dataset
-	    map.removeLayer(geojsonLayer);
-		map.removeControl(info);
-	    createFeatures();
-	    geojsonLayer = L.geoJson(dataset, layerOptions); 
-	    map.addLayer(geojsonLayer); 
-    }     
+function updateMap() {
+quarter = document.getElementById("mySelect").value;
+//remove the old data and legend from the map and add the other dataset
+if (quarter == "All Proposed") {
+	dev_options = "current";
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset2, layerOptions); 
+	map.addLayer(geojsonLayer);  
+} else if (quarter == "CONSTRUCTION" | quarter == "PL FILED" | quarter == "PL APPROVED" | quarter == "BP FILED" | quarter == "BP ISSUED" | quarter == "BP APPROVED" | quarter == "BP REINSTATED") {
+	dev_options = "current";
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset2, layerOptions); 
+	map.addLayer(geojsonLayer);  
+} else {
+	dev_options = 'recent';
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset, layerOptions); 
+	map.addLayer(geojsonLayer);  
+}
+//'CONSTRUCTION' | 'PL FILED' | 'PL ISSUED' | 
+//remove the old data and legend from the map and add the other dataset
+ 
 
 }
 
@@ -269,4 +317,4 @@ var geojsonLayer = L.geoJson(dataset, layerOptions);
 map.addLayer(geojsonLayer);
 
 // fit the initial map view to the data points
-map.fitBounds(geojsonLayer.getBounds());
+map.fitBounds(geojsonLayer.getBounds(), {maxZoom: 12});

@@ -19,8 +19,9 @@ var dev_options = 'recent';
 var catProps = unitcats;
 var catName = 'unitcat';
 
-//initialize map with quarter 2 2016
+//initialize map with quarter 2 2016 and residential data
 var quarter = 'All Quarters';
+var type = 'Residential';
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -36,13 +37,13 @@ Section 2: Generate Map Elements (Change with button)
 //create a function to create all the styles and functionality for the point data so it's reusable when we switch datasets dynamically
 function createFeatures() {
 	//Define Title
-	var title = '<h4>SF Residential Development</h4>';
+	var title = '<h4>SF Development Map</h4>';
 	
 	var button = '<button onclick="updateMap();">Update Map</button>';
 	
 	//Create popup control for when hovering over polygon
 	
-   var menu = '<select id="mySelect">' +
+   var menu1 = '<select id="mySelect">' +
 	'<optgroup label="Recently Completed">' +
 	'<option value="All Quarters">All Quarters</option>' + 
     '<option value="Q2-2016">Q2-2016</option>' +
@@ -72,15 +73,23 @@ function createFeatures() {
 	'<option value="BP REINSTATED">BP Reinstated</option>' +
 	'</optgroup>' +
     '</select>';
+	
+	var menu2 = '<select id="mySelect2">' +
+	'<option value="Residential">Residential</option>' + 
+    '<option value="Non-Residential">Non-Residential</option>' +
+	'</select>';
 
 	var catchphrase = 'Click any dot for details.'
+	
+	//var asterisk = '*Non-residential includes educational, medical, professional, industrial, retail, and hotel development.'
 	
 	//Add title box
 	info = L.control();
 
 	info.onAdd = function (map) {
 		var div = L.DomUtil.create('div', 'info');
-		div.innerHTML = title  + catchphrase + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2017/02/03/q3-2016-sf-development-data-is-out/">More Info.</a>') + '<br>' + menu + button ;
+		div.innerHTML = title + catchphrase + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2017/02/03/q3-2016-sf-development-data-is-out/">More Info.</a>') + '<br><b>Filters</b>' + 
+		'<br>Status:' + menu1 + '<br>Type:' + menu2 + '<br>' + button /*+ '<br><small>' + asterisk + '</small>'*/;
 		return div;
 	};
 
@@ -99,24 +108,16 @@ function createFeatures() {
 	    onEachFeature: onEachFeature
 	};
 	
-	//function to filter out data
 	function filter(feature, layer) {
 		if (quarter == "All Quarters") {
 			return true;
 		} else if (quarter == "All Proposed") {
 			return true;
-		} else if (quarter == "CONSTRUCTION" | quarter == "PL FILED" | quarter == "PL APPROVED" | quarter == "BP FILED" | quarter == "BP ISSUED" | quarter == "BP APPROVED" | quarter == "BP REINSTATED") {
-			return feature.properties.status == quarter;
+		} else if (dev_options == "recent") {
+			return feature.properties.quarter == quarter;
 		} else {
-			var list = [quarter];
-			//check if dot's quarter is in the above list, show if yes
-			if (list.indexOf(feature.properties.quarter) >=0) {
-				return true;
-			} else {
-				return false;
-			}
+			return feature.properties.status == quarter;
 		}
-		//return feature.properties.quarter == quarter;
 	}
 	
 	// function to add data points to map layer with proper styling
@@ -215,7 +216,8 @@ function createFeatures() {
 		var lon = lat_lon[0];
 		var coordinates = {lat: lat, lng: lon};
 		
-		if (dev_options == 'recent') {
+		//define popup content
+		if (dev_options == 'recent' & type == 'Residential') {
 			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
             '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
             '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
@@ -225,16 +227,35 @@ function createFeatures() {
 			'<button>Show Description</button>' +
 			'<br /><span class="description">' + props.desc + '</span>';
 			   }
-	     else {
+	     else if (dev_options == 'recent' & type == "Non-Residential") {
  			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
-            '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
-            '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
-			'<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
+            '<br /><span class="popup-label">Net Square Footage: ' + props.comm_sqft_net + '</span>' +
+			'<br /><span class="popup-label">Quarter Completed: ' + props.quarter + '</span>'  +
  		    '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
  			'<div id = "pano" class = "pano"></div>' +
  			'<button>Show Description</button>' +
  			'<br /><span class="description">' + props.desc + '</span>';
 			   }
+  	     else if (dev_options == 'current' & type == "Residential") {
+   			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
+            '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
+            '<br /><span class="popup-label">Net Affordable Units: ' + props.net_affordable_units + '</span>'  +
+  			'<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
+   		    '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
+   			'<div id = "pano" class = "pano"></div>' +
+   			'<button>Show Description</button>' +
+   			'<br /><span class="description">' + props.desc + '</span>';
+  			   }
+		  else {
+  			var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
+        	'<br /><span class="popup-label">Net Square Footage: ' + props.comm_sqft_net + '</span>' +
+ 			'<br /><span class="popup-label">Status: ' + props.status + '</span>'  +
+  		    '<br /><span class="popup-label">Zone: ' + props.zone + '</span>'  +
+  			'<div id = "pano" class = "pano"></div>' +
+  			'<button>Show Description</button>' +
+  			'<br /><span class="description">' + props.desc + '</span>';
+ 			   }
+		 
 
 			
 	    var popup = L.popup({closeOnClick: false}).setContent(popupContent).setLatLng(latlng);
@@ -276,24 +297,48 @@ createFeatures();
 //************************************************************************
 //Section 3. create legend and source of data
 //************************************************************************
-function keys(myObj) {//extract keys from obj
-    var ks = [];
-    for (var k in myObj) {if (myObj.hasOwnProperty(k)) {ks.push(k);}}
-    return ks;
+
+
+function createlegend() {
+	function keys(myObj) {//extract keys from obj
+	    var ks = [];
+	    for (var k in myObj) {if (myObj.hasOwnProperty(k)) {ks.push(k);}}
+	    return ks;
+	}
+
+	type = document.getElementById("mySelect2").value;
+	
+	if (type == "Residential") {
+		legend = L.control({position: 'bottomright'});
+		legend.onAdd = function (map) {
+		    var title = 'Net Units Added';
+		    var div = L.DomUtil.create('div', 'info legend');
+		    div.innerHTML = '<h4>' + title + '</h4>';
+		    //loop from high to low to put legend ranges in descending order
+		    for (var i=keys(unitcats).length-1; i>=0; i--) { 
+		        div.innerHTML += '<i style="background:' + unitcats[i]['color'] + '"></i> ' + unitcats[i]['label'] + '<br>';
+		    }
+		    return div;
+		};
+		legend.addTo(map);//end of legend creation
+	} else {
+		legend = L.control({position: 'bottomright'});
+		legend.onAdd = function (map) {
+		    var title = 'Net Square Footage Added';
+		    var div = L.DomUtil.create('div', 'info legend');
+		    div.innerHTML = '<h4>' + title + '</h4>';
+		    //loop from high to low to put legend ranges in descending order
+		    for (var i=keys(unitcats2).length-1; i>=0; i--) { 
+		        div.innerHTML += '<i style="background:' + unitcats2[i]['color'] + '"></i> ' + unitcats2[i]['label'] + '<br>';
+		    }
+		    return div;
+		};
+		legend.addTo(map);//end of legend creation
+	}
 }
 
-legend = L.control({position: 'bottomright'});
-legend.onAdd = function (map) {
-    var title = 'Net Units Added'
-    var div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML = '<h4>' + title + '</h4>';
-    //loop from high to low to put legend ranges in descending order
-    for (var i=keys(unitcats).length-1; i>=0; i--) { 
-        div.innerHTML += '<i style="background:' + unitcats[i]['color'] + '"></i> ' + unitcats[i]['label'] + '<br>';
-    }
-    return div;
-};
-legend.addTo(map);//end of legend creation
+createlegend();
+
 
 //Add source of data box
 source = L.control({position: 'bottomleft'});
@@ -309,28 +354,81 @@ source.addTo(map);
 //************************************************************************
 //Section 4: switch between recently completed and currently proposed development
 //************************************************************************
+
+/*
 function updateMap() {
 quarter = document.getElementById("mySelect").value;
+type = document.getElementById("mySelect2").value;
+
+array = ['All Proposed', 'CONSTRUCTION', 'PL FILED', 'PL APPROVED', 'BP FILED', 'BP ISSUED', 'BP APPROVED', 'BP REINSTATED']; //define array for recent selections
+
 //remove the old data and legend from the map and add the other dataset
-if (quarter == "All Proposed") {
+if (array.indexOf(quarter) >=0 & type == "Residential")  {
 	dev_options = "current";
 	map.removeLayer(geojsonLayer);
 	geojsonLayer = L.geoJson(dataset2, layerOptions); 
 	map.addLayer(geojsonLayer);  
-} else if (quarter == "CONSTRUCTION" | quarter == "PL FILED" | quarter == "PL APPROVED" | quarter == "BP FILED" | quarter == "BP ISSUED" | quarter == "BP APPROVED" | quarter == "BP REINSTATED") {
-	dev_options = "current";
-	map.removeLayer(geojsonLayer);
-	geojsonLayer = L.geoJson(dataset2, layerOptions); 
-	map.addLayer(geojsonLayer);  
-} else {
+} else  {
 	dev_options = 'recent';
 	map.removeLayer(geojsonLayer);
 	geojsonLayer = L.geoJson(dataset, layerOptions); 
+	map.addLayer(geojsonLayer); 
+}
+
+}
+*/
+
+
+function updateMap() {
+quarter = document.getElementById("mySelect").value;
+type = document.getElementById("mySelect2").value;
+
+array = ['All Proposed', 'CONSTRUCTION', 'PL FILED', 'PL APPROVED', 'BP FILED', 'BP ISSUED', 'BP APPROVED', 'BP REINSTATED']; //define array for recent selections
+//remove the old data and legend from the map and add the other dataset
+if (array.indexOf(quarter) >=0 & type == "Residential") {
+	dev_options = "current";
+	catProps = unitcats;
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset2, layerOptions); 
 	map.addLayer(geojsonLayer);  
+	map.removeControl(legend);
+	createlegend();
+} else if (array.indexOf(quarter) >=0 & type == "Non-Residential") {
+	dev_options = "current";
+	catProps = unitcats2;
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset4, layerOptions); 
+	map.addLayer(geojsonLayer); 
+	map.removeControl(legend);
+	createlegend();
+} else if (array.indexOf(quarter) == -1 & type == "Residential")  {
+	dev_options = 'recent';
+	catProps = unitcats;
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset, layerOptions); 
+	map.addLayer(geojsonLayer); 
+	map.removeControl(legend);
+	createlegend(); 
+} else {
+	dev_options = 'recent';
+	catProps = unitcats2;
+	map.removeLayer(geojsonLayer);
+	geojsonLayer = L.geoJson(dataset3, layerOptions); 
+	map.addLayer(geojsonLayer); 
+	map.removeControl(legend);
+	createlegend();
 }
 
 }
 
+
+
+
+/*Attempt to fix bug when maximizing window
+map.on('resize', function () {
+    createFeatures();
+});
+*/
 /**********************************************************
 Section 5. CREATE MAP AND FIT BOUNDS
 ***********************************************************/

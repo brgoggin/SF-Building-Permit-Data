@@ -310,7 +310,7 @@ function createlegend() {
 	type = document.getElementById("mySelect2").value;
 	
 	if (type == "Residential") {
-		legend = L.control({position: 'bottomright'});
+		legend = L.control({position: 'topright'});
 		legend.onAdd = function (map) {
 		    var title = 'Net Units Added';
 		    var div = L.DomUtil.create('div', 'info legend');
@@ -323,7 +323,7 @@ function createlegend() {
 		};
 		legend.addTo(map);//end of legend creation
 	} else {
-		legend = L.control({position: 'bottomright'});
+		legend = L.control({position: 'topright'});
 		legend.onAdd = function (map) {
 		    var title = 'Net Square Footage Added';
 		    var div = L.DomUtil.create('div', 'info legend');
@@ -356,28 +356,6 @@ source.addTo(map);
 //Section 4: switch between recently completed and currently proposed development
 //************************************************************************
 
-/*
-function updateMap() {
-quarter = document.getElementById("mySelect").value;
-type = document.getElementById("mySelect2").value;
-
-array = ['All Proposed', 'CONSTRUCTION', 'PL FILED', 'PL APPROVED', 'BP FILED', 'BP ISSUED', 'BP APPROVED', 'BP REINSTATED']; //define array for recent selections
-
-//remove the old data and legend from the map and add the other dataset
-if (array.indexOf(quarter) >=0 & type == "Residential")  {
-	dev_options = "current";
-	map.removeLayer(geojsonLayer);
-	geojsonLayer = L.geoJson(dataset2, layerOptions); 
-	map.addLayer(geojsonLayer);  
-} else  {
-	dev_options = 'recent';
-	map.removeLayer(geojsonLayer);
-	geojsonLayer = L.geoJson(dataset, layerOptions); 
-	map.addLayer(geojsonLayer); 
-}
-
-}
-*/
 
 
 function updateMap() {

@@ -46,6 +46,7 @@ function createFeatures() {
    var menu1 = '<select id="mySelect">' +
 	'<optgroup label="Recently Completed">' +
 	'<option value="All Quarters">All Quarters</option>' +
+	'<option value="Q4-2016">Q4-2016</option>' + 
 	'<option value="Q3-2016">Q3-2016</option>' + 
     '<option value="Q2-2016">Q2-2016</option>' +
     '<option value="Q1-2016">Q1-2016</option>' +
@@ -63,7 +64,7 @@ function createFeatures() {
 	'<option value="Q1-2013">Q1-2013</option>' +
 	'<option value="Q4-2012">Q4-2012</option>' +
     '</optgroup>' +
-	'<optgroup label="Currently Proposed (Q4-2016)">' +
+	'<optgroup label="Currently Proposed (Q1-2017)">' +
 	'<option value="All Proposed">All Proposed</option>' +
 	'<option value="CONSTRUCTION">Under Construction</option>' +
 	'<option value="PL APPROVED">PL Approved</option>' +
@@ -272,7 +273,6 @@ function createFeatures() {
 			  $(".description").toggle();
 		 });
 		
-		 
 		 //Google Panorama Element 
 		 var panoelement = document.getElementsByClassName("pano");
 		 var panorama = new google.maps.StreetViewPanorama(

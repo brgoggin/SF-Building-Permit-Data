@@ -90,7 +90,7 @@ function createFeatures() {
 
 	info.onAdd = function (map) {
 		var div = L.DomUtil.create('div', 'info');
-		div.innerHTML = title + catchphrase + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2017/02/03/q3-2016-sf-development-data-is-out/">More Info.</a>') + '<br><b>Filters</b>' + 
+		div.innerHTML = title + catchphrase + (inIframe() ? '' : ' <a href="http://www.briangoggin.com/2017/06/03/quarter-1-2017-development-pipeline//">More Info.</a>') + '<br><b>Filters</b>' + 
 		'<br>Status:' + menu1 + '<br>Type:' + menu2 + '<br>' + button /*+ '<br><small>' + asterisk + '</small>'*/;
 		return div;
 	};

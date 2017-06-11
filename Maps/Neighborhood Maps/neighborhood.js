@@ -15,10 +15,12 @@ var catProps = unitcats;
 var layerOptions = null;
 var legend = null;
 var info = null;
+var polgyon_menu = null;
 
 //Initialize map with residential and recently completed data
 var type = 'Residential';
 var statusvar = "Recently Completed";
+var geography = "Zillow";
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -26,7 +28,6 @@ var basemapAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright
 var basemapProperties = {minZoom: 2, maxZoom: 16, attribution: basemapAttribution};
 var basemap = L.tileLayer(basemapUrl, basemapProperties);
 map.addLayer(basemap);
-
 
 
 /***********************************************
@@ -69,6 +70,11 @@ function createFeatures() {
     '<option value="Non-Residential">Non-Residential</option>' +
 	'</select>';
 	
+	var menu3 = '<select id="mySelect3">' +
+	'<option value="Zillow">Zillow Neighborhoods</option>' + 
+    '<option value="41 Neighborhoods">41 Neighborhoods</option>' +
+	'</select>';
+	
 	var button = '<button onclick="updateMap();">Update Map</button>';
 	
 	//Define Title
@@ -78,27 +84,22 @@ function createFeatures() {
 
 	info.onAdd = function (map) {
 	    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+		this._div.innerHTML = "<div id = 'updates'>" + title + "</div><div id = 'menu_options'><b>Filters</b><br>Status:"+ menu1 + "<br>Type:" + menu2 +  "<br>Geography:" + menu3 + "<br>" + button + "</div>";
 	    this.update();
 	    return this._div;
 	};
 
 	// method that we will use to update the control based on feature properties passed
 	info.update = function (props) {
-		
 		if (type == "Residential") {
-		    this._div.innerHTML = title + (props ? '<b>' + props.name + '</b><br />' + props.net_units + ' net units added' : 'Hover over a neighborhood' + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>')) + 
-			'<br><b>Filters</b>' + '<br>Status:'+ menu1 + '<br>Type:' + menu2 +  '<br>' + button ;
+		    this._div.childNodes[0].innerHTML = title + (props ? '<b>' + props.name + '</b><br />' + props.net_units + ' net units added' : 'Hover over a neighborhood' + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>'));
 		} 
-		
 		else {
-		    this._div.innerHTML = title + (props ? '<b>' + props.name + '</b><br />' + props.comm_sqft_net + ' net square footage added' : 'Hover over a neighborhood' + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>')) + 
-			'<br><b>Filters</b>' + '<br>Status:'+ menu1 + '<br>Type:' + menu2 + '<br>' + button ;
+		    this._div.childNodes[0].innerHTML = title + (props ? '<b>' + props.name + '</b><br />' + props.comm_sqft_net + ' net square footage added' : 'Hover over a neighborhood' + (inIframe() ? '' : ' <a href="https://www.ocf.berkeley.edu/~bgoggin/">More Info</a>'));
 		}
-
     };
 
 	info.addTo(map);
-	
 
 	//define hover and click functionality
 
@@ -116,13 +117,11 @@ function createFeatures() {
 	    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
 	        layer.bringToFront();
 	    }
-	
 		info.update(layer.feature.properties);
 	}
 
 	function resetHighlight(e) {
 	    geojsonLayer.resetStyle(e.target);
-	
 		info.update();
 	}
 
@@ -157,7 +156,6 @@ function createFeatures() {
 //create all the styles and functionality for the point data
 createFeatures();
 
-
 //************************************************************************
 //create legend
 //************************************************************************
@@ -168,8 +166,6 @@ function createlegend() {
 	    return ks;
 	}
 
-	//type = document.getElementById("mySelect2").value;
-	
 	if (type == "Residential") {
 		legend = L.control({position: 'topright'});
 		legend.onAdd = function (map) {
@@ -205,65 +201,58 @@ createlegend();
 function updateMap() {
 	statusvar = document.getElementById("mySelect").value;
 	type = document.getElementById("mySelect2").value;
+	geography = document.getElementById("mySelect3").value;
 	
-	if (statusvar == "Recently Completed" & type == "Residential") {
-		//something with legend
+	if (statusvar == "Recently Completed" & type == "Residential" & geography == "Zillow") {
 		map.removeLayer(geojsonLayer);
 		geojsonLayer = L.geoJson(dataset1, layerOptions); 
 		map.addLayer(geojsonLayer);  
 		map.removeControl(legend);
 		createlegend();
-	} else if (statusvar == "Currently Proposed" & type == "Residential") {
-		//something with legend
+	} else if (statusvar == "Currently Proposed" & type == "Residential" & geography == "Zillow") {
 		map.removeLayer(geojsonLayer);
 		geojsonLayer = L.geoJson(dataset2, layerOptions); 
 		map.addLayer(geojsonLayer);  
 		map.removeControl(legend);
 		createlegend();
-	} else if (statusvar == "Recently Completed" & type == "Non-Residential") {
-		//something with legend
+	} else if (statusvar == "Recently Completed" & type == "Non-Residential" & geography == "Zillow") {
 		map.removeLayer(geojsonLayer);
 		geojsonLayer = L.geoJson(dataset3, layerOptions); 
 		map.addLayer(geojsonLayer);  
 		map.removeControl(legend);
 		createlegend();
-	} else if (statusvar == "Currently Proposed" & type == "Non-Residential") {
-		//something with legend
+	} else if (statusvar == "Currently Proposed" & type == "Non-Residential" & geography == "Zillow") {
 		map.removeLayer(geojsonLayer);
 		geojsonLayer = L.geoJson(dataset4, layerOptions); 
 		map.addLayer(geojsonLayer);  
 		map.removeControl(legend);
 		createlegend();
+	} else if (statusvar == "Recently Completed" & type == "Residential" & geography == "41 Neighborhoods") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset5, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
+	} else if (statusvar == "Currently Proposed" & type == "Residential" & geography == "41 Neighborhoods") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset6, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
+	} else if (statusvar == "Recently Completed" & type == "Non-Residential" & geography == "41 Neighborhoods") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset7, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
+	} else if (statusvar == "Currently Proposed" & type == "Non-Residential" & geography == "41 Neighborhoods") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset8, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
 	}
 }
-
-
-/*
-//switch between median rent and change in rent datasets. currently not working
-function switchData() {
-    if (dev_options == 'recent') {
-        dev_options = 'current';
-	    //remove the old data and legend from the map and add the other dataset
-	    map.removeLayer(geojsonLayer);
-		map.removeControl(legend);
-		map.removeControl(info);
-	    createFeatures();
-	    geojsonLayer = L.geoJson(dataset2, layerOptions); 
-	    map.addLayer(geojsonLayer);  
-    }
-    else {
-        dev_options = 'recent';
-	    //remove the old data and legend from the map and add the other dataset
-	    map.removeLayer(geojsonLayer);
-		map.removeControl(legend);
-		map.removeControl(info);
-	    createFeatures();
-	    geojsonLayer = L.geoJson(dataset, layerOptions); 
-	    map.addLayer(geojsonLayer); 
-    }     
-
-}
-*/
 
 // create the layer and add to map
 geojsonLayer = L.geoJson(dataset1, layerOptions); 

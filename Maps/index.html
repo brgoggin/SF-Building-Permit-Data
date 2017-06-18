@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<! --Import Jquery-->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<style>
+	body {
+	    background-color: white;
+		margin: 0;
+		padding: 0;
+	}
+
+	h1 {
+	    color: white;
+	    margin-left: 40px;
+	}
+	a {
+	    text-decoration: none;
+		color: black;
+	}
+	#Title {
+		font-family: "Times New Roman", Times, serif;
+		font-size: 30px;
+		background-color: white;
+		position: relative;
+		margin: 0 auto;
+		text-align: center;
+		width: 50%;
+		top: 150px;
+	}
+	#dots {
+		font-family: "Times New Roman", Times, serif;
+		font-size: 30px;
+		background-color: white;
+		position: absolute;
+		margin: 0 auto;
+		text-align: center;
+		width: 25%;
+		top: 200px;
+		left: 24%;
+		border-style: solid;
+		border-width: 5px;
+	}
+	#polygons {
+		font-family: "Times New Roman", Times, serif;
+		font-size: 30px;
+		background-color: white;
+		position: absolute;
+		margin: 0 auto;
+		text-align: center;
+		width: 25%;
+		top: 200px;
+		right: 24%;
+		border-style: solid;
+		border-width: 5px;
+	}
+	</style>
+    <title>SF Development Pipeline</title>
+
+</head>
+
+<body>
+
+<div id='Title'>SF Development Pipeline</div>
+<div id='dots'>Projects</div>
+<div id='polygons'>Aggregate Growth</div>
+
+<script>
+
+$(document).ready(function(){
+    $("#dots").hover(function(){
+        $(this).css("background-color", "#3fbee7");
+		$(this).html('<a href="Dot%20Maps/combined.html" target="_blank">Projects</a>');
+        }, function(){
+        $(this).css("background-color", "white");
+		$(this).html('Projects');
+    });
+    $("#polygons").hover(function(){
+        $(this).css("background-color", "#3fbee7");
+		$(this).html('<a href="Neighborhood%20Maps/neighborhood.html" target="_blank">Aggregate Growth</a>');
+        }, function(){
+        $(this).css("background-color", "white");
+		$(this).html('Aggregate Growth');
+    });
+	
+});
+</script>
+
+</body>
+</html>

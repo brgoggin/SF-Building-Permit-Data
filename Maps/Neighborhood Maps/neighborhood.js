@@ -20,7 +20,7 @@ var polgyon_menu = null;
 //Initialize map with residential and recently completed data
 var type = 'Residential';
 var statusvar = "Recently Completed";
-var geography = "Zillow";
+var geography = "41 Neighborhoods";
 
 //add tile layer basemap to the map
 var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -71,8 +71,9 @@ function createFeatures() {
 	'</select>';
 	
 	var menu3 = '<select id="mySelect3">' +
+	'<option value="41 Neighborhoods">41 Neighborhoods</option>' +
 	'<option value="Zillow">Zillow Neighborhoods</option>' + 
-    '<option value="41 Neighborhoods">41 Neighborhoods</option>' +
+	'<option value="PDAs">Priority Development Areas</option>' +
 	'</select>';
 	
 	var button = '<button onclick="updateMap();">Update Map</button>';
@@ -251,11 +252,35 @@ function updateMap() {
 		map.addLayer(geojsonLayer);  
 		map.removeControl(legend);
 		createlegend();
+	} else if (statusvar == "Recently Completed" & type == "Residential" & geography == "PDAs") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset9, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
+	} else if (statusvar == "Currently Proposed" & type == "Residential" & geography == "PDAs") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset10, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
+	} else if (statusvar == "Recently Completed" & type == "Non-Residential" & geography == "PDAs") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset11, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
+	} else if (statusvar == "Currently Proposed" & type == "Non-Residential" & geography == "PDAs") {
+		map.removeLayer(geojsonLayer);
+		geojsonLayer = L.geoJson(dataset12, layerOptions); 
+		map.addLayer(geojsonLayer);  
+		map.removeControl(legend);
+		createlegend();
 	}
 }
 
 // create the layer and add to map
-geojsonLayer = L.geoJson(dataset1, layerOptions); 
+geojsonLayer = L.geoJson(dataset5, layerOptions); 
 map.addLayer(geojsonLayer);
 
 // fit the initial map view to the data points

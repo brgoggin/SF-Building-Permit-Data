@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+    <title>Basic Example</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+	<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+  <style>
+	  body { 
+	    margin: 0; 
+	    padding: 0; 
+	    font-family: Helvetica, sans-serif;
+	  }
+	  #map {
+	    position: absolute;
+	    top: 0;
+	    bottom: 0;
+	    left: 0;
+	    width: 100%;
+	  }
+	
+	#overlay {
+	    width: 200px;
+	    position: absolute;
+	    top: 10px;
+	    right: 10px;
+	    background: rgba(255,255,255,0.85);
+	    padding: 12px;
+	    color: #555;
+	}
+
+	#overlay-desc span {
+	    display: block;
+	    font-size: 13px;
+	    font-weight: normal;
+	    margin-top: 3pt;
+	}
+	#overlay-desc span b {
+	    color: #000;
+	    font-size: 15px;
+	    font-weight: bold;
+	}
+	
+	.info {
+	    padding: 6px 8px;
+	    font: 14px/16px Arial, Helvetica, sans-serif;
+	    background: white;
+	    background: rgba(255,255,255,0.85);
+	    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+	    border-radius: 5px;
+		pointer-events: auto;
+	}
+	.info h4 {
+	    margin: 0 0 4px;
+	    color: #000;
+	}
+  </style>
+</head>
+<body>
+  <div id='map'></div>
+  <div id='overlay' class='overlay'>
+      <div id='overlay-desc'></div> 
+  </div>
+  
+<script type="text/javascript">
+	
+    //Initiate bounds variables
+    var bounds =  null;
+	//initiating with very wide bounds to return everything
+    var lower_bound = -100;
+    var upper_bound = 3000;
+	//Initiate status vars
+	var proj_status = null;
+    var place_name = null;
+  
+ // create the Leaflet map container
+  var map = L.map('map').setView([37.767, -122.441042], 13);
+  
+  //add tile layer basemap to the map
+  var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+  var basemapAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>';
+  var basemapProperties = {minZoom: 2, maxZoom: 16, attribution: basemapAttribution};
+  L.tileLayer(basemapUrl, basemapProperties).addTo(map);
+  
+// Global Variables
+// Will go here
+var projects = null;
+//specify what the circle markers should look like (radius and fill color are dynamically set later)
+var markerStyle = {radius: null, fillOpacity: 0.7, color: '#666666', opacity: 1, weight: 1, fillColor: null};
+  
+if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+	var initialZoomLevel = 12;
+} else {
+	var initialZoomLevel = 10;
+}
+  
+function getRadius() {
+	//Make dots bigger if viewed on mobile
+	if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+	    if (map.getZoom()) { radius = Math.pow(map.getZoom(), 0.9); } //if map already exists, get current zoom level
+	    else { radius = Math.pow(initialZoomLevel, 0.9); } //if it's the initial startup, use initial zoom level
+	    return radius;
+	} else {
+	    if (map.getZoom()) { radius = Math.pow(map.getZoom(), 0.8); } //if map already exists, get current zoom level
+	    else { radius = Math.pow(initialZoomLevel, 0.8); } //if it's the initial startup, use initial zoom level
+	    return radius;
+	}	
+}
+  
+  
+  
+// function to add data points to map layer with proper styling
+function pointToLayer(feature, latlng) {
+		markerStyle.fillColor = '#666666';
+		markerStyle.radius = getRadius();
+        return L.circleMarker(latlng, markerStyle);
+}
+  
+  
+  
+
+  
+  
+  
+//Add button to map
+info = L.control();
+
+var status_menu = '<select id="statusSelect">' +
+	'<optgroup label="Currently Proposed (Q1-2017)">' +
+	'<option value="All Proposed">All Proposed</option>' +
+	'<option value="CONSTRUCTION">Under Construction</option>' +
+	'<option value="PL APPROVED">PL Approved</option>' +
+	'<option value="PL FILED">PL Filed</option>' +
+	'<option value="BP ISSUED">BP Issued</option>' +
+	'<option value="BP APPROVED">BP Approved</option>' +
+	'<option value="BP FILED">BP Filed</option>' +
+	'<option value="BP REINSTATED">BP Reinstated</option>' +
+	'</optgroup>' +
+'</select>';
+
+var place_menu = '<select id="placeSelect">' +
+	'<optgroup label="Neighborhoods">' +
+    '<option value="None">None Selected</option>' +
+	'<option value="Bayview Hunters Point">Bayview Hunters Point</option>' +
+	'<option value="Mission">Mission</option>' +
+    '<option value="Bernal Heights">Bernal Heights</option>' +
+    '<option value="Castro/Upper Market">Castro/Upper Market</option>' +
+    '<option value="Chinatown">Chinatown</option>' +
+    '<option value="Excelsior">Excelsior</option>' +
+    '<option value="Financial District/South Beach">Financial District/South Beach</option>' +
+    '<option value="Glen Park">Glen Park</option>' +
+    '<option value="Haight Ashbury">Haight Ashbury</option>' +
+    '<option value="Hayes Valley">Hayes Valley</option>' +
+    '<option value="Inner Richmond">Inner Richmond</option>' +
+	'</optgroup>' +
+'</select>';
+
+
+
+var button3 = '<button onclick="showPDA();">In PDA</button>';
+var button4 = '<button onclick="showClosest();">Closest 5</button>';
+var button5 = '<button onclick="showAggregate();">Aggregate</button>';
+var button6 = '<button onclick="showUnits();">Unit Counts</button>';
+var button7 = '<button onclick="showCombined2();">Update Map</button>';
+
+info.onAdd = function (map) {
+	var div = L.DomUtil.create('div', 'info');
+    div.innerHTML = "<form id ='unit_bounds'></br> <b>Minimum Units:</b><input type='text' value = ''></input></br><b>Maximimum Units:</b><input type='text' value = ''></input></form></br>"+ status_menu + "</br>" + place_menu + "</br>" + button7 + "</br><b> Experimental Features:</b></br>"+button3 +"</br>" +button4 + "</br>" +button5;
+    
+	/*div.innerHTML = "<form id ='unit_bounds'></br> <b>Minimum Units:</b><input type='text' value = ''></input></br><b>Maximimum Units:</b><input type='text' value = ''></input></form></br>" + status_menu + "</br>" + place_menu + "</br>" + button2 + "</br>" +button3 + "</br>" +button4 + "</br>" +button5 + "</br>" +button6 + "</br>" +button7;*/
+	L.DomEvent.disableClickPropagation(div);
+	return div;
+};
+
+info.addTo(map);
+
+
+  
+
+//test aggregate query (aggregate dots by polygons)
+//Aggregate dots by various polygons
+var aggregate_query = "SELECT pdas.name, pdas.the_geom, sum(current_data.net_units) FROM current_data, pdas WHERE ST_Intersects(current_data.the_geom, pdas.the_geom) GROUP BY pdas.name, pdas.the_geom";
+  
+  //test POSTGIS to select projects in the Mission Neighborhood (PDAs shapefile)
+//This one works
+var pda_query = "SELECT current_data.address, current_data.the_geom FROM current_data, (SELECT * FROM pdas WHERE name = 'Downtown-Van Ness-Geary') AS dd_nc WHERE ST_Intersects(current_data.the_geom, dd_nc.the_geom)";
+  
+  //test POSTGIS to select projects in the Mission Neighborhood (41 Neighborhoods shapefile)
+//This one works. Have to explicitly list columns because some columns are ambiguous between two datasets (?)
+var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current_data, (SELECT * FROM table_41_neighborhoods WHERE nhood = 'Mission') AS dd_nc WHERE ST_Intersects(current_data.the_geom, dd_nc.the_geom)";
+
+
+//Reverse of the above, seems to return every polygon. Interesting...
+//var mission_query = "SELECT table_41_neighborhoods.the_geom FROM table_41_neighborhoods, (SELECT * FROM current_data) AS dd_nc WHERE ST_Intersects(dd_nc.the_geom, table_41_neighborhoods.the_geom)";
+  
+  //Query by closest 5 dots to a give point (Web Mercator Projection)
+  var closest_query = "SELECT * FROM current_data ORDER BY ST_SetSRID(the_geom, 4326) <-> ST_SetSRID(ST_MakePoint(-122.424777, 37.764063), 4326) LIMIT 5";
+  
+  // Get all development projects from dataset
+  var sqlQuery = "SELECT * FROM current_data";
+
+
+
+
+
+
+
+  // Set CartoDB Username
+  var cartoDBUserName = "bgoggin";
+  // Function to add call coffee shops
+  // Get CartoDB selection as GeoJSON and Add to Map
+  function showAll(){
+    $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+sqlQuery, function(data) {
+      projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+    });
+  };
+  
+  
+  function showPDA() {
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+pda_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+      });
+	
+  }
+  
+  function showClosest() {
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+closest_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+      });
+	
+  }
+  
+  function showAggregate() {
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+aggregate_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+      });
+	
+  }
+  
+  function showUnits() {
+	  bounds = document.getElementById("unit_bounds").children;
+	  lower_bound = bounds[1].value;
+	  upper_bound = bounds[3].value;
+	  var unit_query = "SELECT * FROM current_data WHERE net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+unit_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+      });
+	
+  }
+  
+  function showCombined() {
+	  //Get unit bounds from user selections
+	  bounds = document.getElementById("unit_bounds").children;
+	  lower_bound = bounds[1].value;
+	  upper_bound = bounds[3].value;
+	  //Get project status from user selections
+	  proj_status = document.getElementById("statusSelect").value;
+	  if (proj_status == 'All Proposed') {
+	  	var statusvar = "";
+	  }
+	  else {
+	  	var statusvar = "AND status = '" + proj_status + "'";
+	  }
+	  
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+	  var units = "net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
+	  var combined_query = "SELECT * FROM current_data WHERE " + units + statusvar;
+	  
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+      });
+  }
+   
+  function showCombined2() {
+	  //Get unit bounds from user selections
+	  bounds = document.getElementById("unit_bounds").children;
+	  lower_bound = bounds[2].value;
+	  upper_bound = bounds[5].value;
+	  //Get project status from user selections
+	  proj_status = document.getElementById("statusSelect").value;
+	  if (proj_status == 'All Proposed') {
+	  	var statusvar = "";
+	  }
+	  else {
+	  	var statusvar = "AND status = '" + proj_status + "'";
+	  }
+      
+	  //Get place name filter
+	  place_name = document.getElementById("placeSelect").value;
+	  if (place_name == 'None') {
+	  	var placevar = "";
+	  }
+	  else {
+	  	var placevar = place_name;
+	  }
+	  
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+	  var units = "AND net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
+	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.the_geom FROM current_data AS cd, (SELECT * FROM table_41_neighborhoods WHERE nhood = '" + placevar + "') AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + units + statusvar;
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
+      });
+  }
+  
+  
+  
+function onEachFeature(feature, layer) {
+    layer.on({
+		click: clickFeature
+    });
+}
+
+//on click, pan/zoom to feature and show popup
+function clickFeature(e) {
+    var target = e.target;
+    var latlng = target._latlng;
+    var props = target.feature.properties;
+
+	var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
+    '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
+    '<br /><span class="popup-label">Status: ' + props.status + '</span>';
+	 
+    var popup = L.popup({closeOnClick: false}).setContent(popupContent).setLatLng(latlng);
+    target.bindPopup(popup).openPopup(); 
+	
+}
+  
+  // Run showAll function automatically when document loads
+  $(document).ready(function() {
+    showAll();
+  });
+  
+
+
+</script>
+
+</body>
+</html>

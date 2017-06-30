@@ -167,7 +167,7 @@ var button7 = '<button onclick="showCombined2();">Update Map</button>';
 
 info.onAdd = function (map) {
 	var div = L.DomUtil.create('div', 'info');
-    div.innerHTML = "<form id ='unit_bounds'></br> <b>Minimum Units:</b><input type='text' value = ''></input></br><b>Maximimum Units:</b><input type='text' value = ''></input></form></br>"+ status_menu + "</br>" + place_menu + "</br>" + button7 + "</br><b> Experimental Features:</b></br>"+button3 +"</br>" +button4 + "</br>" +button5;
+    div.innerHTML = "<b>Search by Neighborhood</b></br><form id ='unit_bounds'></br> Minimum Units:<input type='text' value = ''></input></br>Maximimum Units:<input type='text' value = ''></input></form></br>Status:"+ status_menu + "</br>Neighborhood:" + place_menu + "</br>" + button7 + "</br><b> Experimental Features:</b></br>"+button3 +"</br>" +button4 + "</br>" +button5;
     
 	/*div.innerHTML = "<form id ='unit_bounds'></br> <b>Minimum Units:</b><input type='text' value = ''></input></br><b>Maximimum Units:</b><input type='text' value = ''></input></form></br>" + status_menu + "</br>" + place_menu + "</br>" + button2 + "</br>" +button3 + "</br>" +button4 + "</br>" +button5 + "</br>" +button6 + "</br>" +button7;*/
 	L.DomEvent.disableClickPropagation(div);
@@ -290,8 +290,18 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
   function showCombined2() {
 	  //Get unit bounds from user selections
 	  bounds = document.getElementById("unit_bounds").children;
-	  lower_bound = bounds[2].value;
-	  upper_bound = bounds[5].value;
+	  lower_bound = bounds[1].value;
+	  upper_bound = bounds[3].value;
+      if (lower_bound != '' && upper_bound != '') {
+          var unit_query = "AND net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
+      } else if (lower_bound == '' && upper_bound !='') {
+          var unit_query = "AND net_units <= " + upper_bound.toString();
+      } else if (lower_bound != '' && upper_bound =='') {
+          var unit_query = "AND net_units >= " + lower_bound.toString();
+      } else {
+          var unit_query = "";
+      }
+      
 	  //Get project status from user selections
 	  proj_status = document.getElementById("statusSelect").value;
 	  if (proj_status == 'All Proposed') {
@@ -304,22 +314,20 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	  //Get place name filter
 	  place_name = document.getElementById("placeSelect").value;
 	  if (place_name == 'None') {
-	  	var placevar = "";
+	  	var placevar = "(SELECT * FROM table_41_neighborhoods)";
 	  }
 	  else {
-	  	var placevar = place_name;
+	  	var placevar = "(SELECT * FROM table_41_neighborhoods WHERE nhood = '" + place_name + "')";
 	  }
 	  
 	  if (map.hasLayer(projects)) {
 		  map.removeLayer(projects);
 	  };
-	  var units = "AND net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
-	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.the_geom FROM current_data AS cd, (SELECT * FROM table_41_neighborhoods WHERE nhood = '" + placevar + "') AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + units + statusvar;
+	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.the_geom FROM current_data AS cd," + placevar + " AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + unit_query + statusvar;
       $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
         projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
       });
   }
-  
   
   
 function onEachFeature(feature, layer) {

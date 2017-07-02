@@ -14,6 +14,9 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
     
+    <!-- Geocoder-js from Github-->
+    <script src="Packages/geocoder.js"></script>
+    
   <style>
 	  body { 
 	    margin: 0; 
@@ -42,22 +45,112 @@
 	    color: #000;
 	}
     .selection_menu {
-        float: right;
+        position: absolute;
+        right: 0px;
+        width: 30%;
     }
+    
+   .first_search {
+        position: relative;
+        left: 20px;
+    }
+    
   </style>
 </head>
 <body>
   <div id='map'></div>
   <div class = "selection_menu">
-  <b> Search by Neighborhood </b>
+  <div class="first_search">
+  <b> Select Project Attributes </b>
+  
+  <form id ='unit_bounds'>
+      Minimum Units:<input type='text' value = ''></input>
+      </br>Maximimum Units:<input type='text' value = ''></input>
+  </form>
+
+  Project Status: <select class="selectpicker" data-live-search="true" id = "statusSelect">
+         <optgroup label="Currently Proposed (Q1 2017)">
+         <option data-tokens="All" value = "All">All</option>
+         <option data-tokens="Under Construction" value = "CONSTRUCTION">Under Construction</option>
+         <option data-tokens="PL Approved" value = "PL APPROVED">PL Approved</option>
+         <option data-tokens="PL Filed" value = "PL FILED">PL Filed</option>
+         <option data-tokens="BP Issued" value = "BP ISSUED">BP Issued</option>
+         <option data-tokens="BP Approved" value = "BP APPROVED">BP Approved</option>
+         <option data-tokens="BP Filed" value = "BP FILED">BP Filed</option>
+         <option data-tokens="BP Reinstated" value = "BP REINSTATED">BP Reinstated</option>
+         </optgroup>
+     </select> </br>
   </br>
-  <select class="selectpicker" data-live-search="true" id = "placeSelect2">
+  <b> Search by Place </b>
+  </br>
+  <select class="selectpicker" data-live-search="true" id = "placeSelect">
+    <option data-tokens="All" value = "All">All</option>
     <optgroup label="Neighborhoods">
     <option data-tokens="Bayview Hunters Point" value = "Bayview Hunters Point">Bayview Hunters Point</option>
     <option data-tokens="Bernal Heights" value = "Bernal Heights">Bernal Heights</option>
-    <option data-tokens="Mission" value = "Mission">Mission </option>
+    <option data-tokens="Castro/Upper Market" value = "Castro/Upper Market">Castro/Upper Market</option>
+    <option data-tokens="Chinatown" value = "Chinatown">Chinatown</option>
+    <option data-tokens="Excelsior" value = "Excelsior">Excelsior</option>
+    <option data-tokens="Financial District/South Beach" value = "Financial District/South Beach">Financial District/South Beach</option>
+    <option data-tokens="Glen Park" value = "Glen Park">Glen Park</option>
+    <option data-tokens="Golden Gate Park" value = "Golden Gate Park">Golden Gate Park</option>
+    <option data-tokens="Haight Ashbury" value = "Haight Ashbury">Haight Ashbury</option>
+    <option data-tokens="Hayes Valley" value = "Hayes Valley">Hayes Valley</option>
+    <option data-tokens="Inner Richmond" value = "Inner Richmond">Inner Richmond</option>
+    <option data-tokens="Inner Sunset" value = "Inner Sunset">Inner Sunset</option>
+    <option data-tokens="Japantown" value = "Japantown">Japantown</option>
+    <option data-tokens="Lakeshore" value = "Lakeshore">Lakeshore</option>
+    <option data-tokens="Lincoln Park" value = "Lincoln Park">Lincoln Park</option>
+    <option data-tokens="Lone Mountain/USF" value = "Lone Mountain/USF">Lone Mountain/USF</option>
+    <option data-tokens="Marina" value = "Marina">Marina</option>
+    <option data-tokens="McLaren Park" value = "McLaren Park">McLaren Park</option>
+    <option data-tokens="Mission" value = "Mission">Mission</option>
+    <option data-tokens="Mission Bay" value = "Mission Bay">Mission Bay</option>
+    <option data-tokens="Nob Hill" value = "Nob Hill">Nob Hill</option>
+    <option data-tokens="Noe Valley" value = "Noe Valley">Noe Valley</option>
+    <option data-tokens="North Beach" value = "North Beach">North Beach</option>
+    <option data-tokens="Oceanview/Merced/Ingleside" value = "Oceanview/Merced/Ingleside">Oceanview/Merced/Ingleside</option>
+    <option data-tokens="Outer Mission" value = "Outer Mission">Outer Mission</option>
+    <option data-tokens="Outer Richmond" value = "Outer Richmond">Outer Richmond</option>
+    <option data-tokens="Pacific Heights" value = "Pacific Heights">Pacific Heights</option>
+    <option data-tokens="Portola" value = "Portola">Portola</option>
+    <option data-tokens="Potrero Hill" value = "Potrero Hill">Potrero Hill</option>
+    <option data-tokens="Presidio" value = "Presidio">Presidio</option>
+    <option data-tokens="Presidio Heights" value = "Presidio Heights">Presidio Heights</option>
+    <option data-tokens="Russian Hill" value = "Russian Hill">Russian Hill</option>
+    <option data-tokens="Seacliff" value = "Seacliff">Seacliff</option>
+    <option data-tokens="South of Market" value = "South of Market">South of Market</option>
+    <option data-tokens="Sunset/Parkside" value = "Sunset/Parkside">Sunset/Parkside</option>
+    <option data-tokens="Tenderloin" value = "Tenderloin">Tenderloin</option>
+    <option data-tokens="Treasure Island" value = "Treasure Island">Treasure Island</option>
+    <option data-tokens="Twin Peaks" value = "Twin Peaks">Twin Peaks</option>
+    <option data-tokens="Visitacion Valley" value = "Visitacion Valley">Visitacion Valley</option>
+    <option data-tokens="Western Addition" value = "Western Addition">Western Addition</option>
+    <option data-tokens="West of Twin Peaks" value = "West of Twin Peaks">West of Twin Peaks</option>
+    </optgroup>
+    <optgroup label="Priority Development Areas">
+    <option data-tokens="19th Avenue" value = "19th Avenue">19th Avenue</option>
+    <option data-tokens="Balboa Park" value = "Balboa Park">Balboa Park</option>
+    <option data-tokens="Bayview/Hunters Point Shipyard/Candlestick Point" value = "Bayview/Hunters Point Shipyard/Candlestick Point">Bayview/Hunters Point Shipyard/Candlestick Point</option>
+    <option data-tokens="Downtown-Van Ness-Geary" value = "Downtown-Van Ness-Geary">Downtown-Van Ness-Geary</option>
+    <option data-tokens="Eastern Neighborhoods" value = "Eastern Neighborhoods">Eastern Neighborhoods</option>
+    <option data-tokens="Market & Octavia" value = "Market & Octavia">Market & Octavia</option>
+    <option data-tokens="Mission Bay" value = "Mission Bay">Mission Bay</option>
+    <option data-tokens="Mission-San Jose Corridor" value = "Mission-San Jose Corridor">Mission-San Jose Corridor</option>
+    <option data-tokens="Port of San Francisco" value = "Port of San Francisco">Port of San Francisco</option>
+    <option data-tokens="Transit Center District" value = "Transit Center District">Transit Center District</option>
+    <option data-tokens="Treasure Island & Yerba Buena Island" value = "Treasure Island & Yerba Buena Island">Treasure Island & Yerba Buena Island</option>
   </select>
-  <div>
+  </br>
+  <button onclick="showCombined2();">Update Map</button>
+  </br></br><b> Or by Address </b>
+  <form id ='address_input'>
+      Distance (In Miles): <input type='text' value = ''></input>
+  </br>Address:<input type='text' value = ''></input>
+  </form>
+  </br><button onclick="addressSearch();">Update Map</button>
+  </div>
+  </div>
   
 <script type="text/javascript">
 	
@@ -71,7 +164,7 @@
     var place_name = null;
   
  // create the Leaflet map container
-  var map = L.map('map').setView([37.767, -122.441042], 13);
+  var map = L.map('map').setView([37.767, -122.441042], 12.5);
   
   //add tile layer basemap to the map
   var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
@@ -105,7 +198,6 @@ function getRadius() {
 }
   
   
-  
 // function to add data points to map layer with proper styling
 function pointToLayer(feature, latlng) {
 		markerStyle.fillColor = '#666666';
@@ -113,76 +205,6 @@ function pointToLayer(feature, latlng) {
         return L.circleMarker(latlng, markerStyle);
 }
   
-  
-  
-
-  
-  
-  
-//Add button to map
-info = L.control();
-
-var status_menu = '<select id="statusSelect">' +
-	'<optgroup label="Currently Proposed (Q1-2017)">' +
-	'<option value="All Proposed">All Proposed</option>' +
-	'<option value="CONSTRUCTION">Under Construction</option>' +
-	'<option value="PL APPROVED">PL Approved</option>' +
-	'<option value="PL FILED">PL Filed</option>' +
-	'<option value="BP ISSUED">BP Issued</option>' +
-	'<option value="BP APPROVED">BP Approved</option>' +
-	'<option value="BP FILED">BP Filed</option>' +
-	'<option value="BP REINSTATED">BP Reinstated</option>' +
-	'</optgroup>' +
-'</select>';
-
-var place_menu = '<select id="placeSelect">' +
-	'<optgroup label="Neighborhoods">' +
-    '<option value="None">None Selected</option>' +
-	'<option value="Bayview Hunters Point">Bayview Hunters Point</option>' +
-	'<option value="Mission">Mission</option>' +
-    '<option value="Bernal Heights">Bernal Heights</option>' +
-    '<option value="Castro/Upper Market">Castro/Upper Market</option>' +
-    '<option value="Chinatown">Chinatown</option>' +
-    '<option value="Excelsior">Excelsior</option>' +
-    '<option value="Financial District/South Beach">Financial District/South Beach</option>' +
-    '<option value="Glen Park">Glen Park</option>' +
-    '<option value="Haight Ashbury">Haight Ashbury</option>' +
-    '<option value="Hayes Valley">Hayes Valley</option>' +
-    '<option value="Inner Richmond">Inner Richmond</option>' +
-	'</optgroup>' +
-'</select>';
-/*
-var place_menu = '<select class="selectpicker" data-live-search="true">' +
-  '<optgroup label="Picnic">' +
-    '<option>Mustard</option>' +
-    '<option>Ketchup</option>' +
-    '<option>Relish</option>' +
-  '</optgroup>' +
-  '<optgroup label="Camping">' +
-    '<option>Tent</option>' +
-    '<option>Flashlight</option>' +
-    '<option>Toilet Paper</option>' +
-  '</optgroup>' +
-'</select>';
-*/
-
-
-
-var button4 = '<button onclick="showClosest();">Closest 5</button>';
-var button5 = '<button onclick="showAggregate();">Aggregate</button>';
-var button7 = '<button onclick="showCombined2();">Update Map</button>';
-
-info.onAdd = function (map) {
-	var div = L.DomUtil.create('div', 'info');
-    div.innerHTML = "<b>Search by Neighborhood</b></br><form id ='unit_bounds'></br> Minimum Units:<input type='text' value = ''></input></br>Maximimum Units:<input type='text' value = ''></input></form></br>Status:"+ status_menu + "</br>Neighborhood:" + place_menu + "</br>" + button7 + "</br><b> Experimental Features:</b></br>" +button4 + "</br>" +button5;
-    
-	L.DomEvent.disableClickPropagation(div);
-	return div;
-};
-
-info.addTo(map);
-
-
   
 
 //test aggregate query (aggregate dots by polygons)
@@ -241,13 +263,36 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	
   }
   
+  function addressSearch() {
+      var input = document.getElementById("address_input").children;
+      var distance = input[0].value.toString();
+      var conversion_factor = "*1609.34"; //convert from miles to meters
+      var address = input[2].value.toString();
+      var openStreetMapGeocoder = GeocoderJS.createGeocoder('openstreetmap');
+      openStreetMapGeocoder.geocode(address+', San Francisco, CA', function(result) {
+            var lat = result[0]['latitude'];
+            var lon = result[0]['longitude'];
+            
+            //Query by dots around above lat lon. Return all points within 0.25 miles (402.336 meters)
+            var closest_query = "SELECT * FROM current_data WHERE ST_Distance(ST_SetSRID(the_geom::geography, 4326), ST_SetSRID(ST_MakePoint(" + lon + "," + lat + ")::geography, 4326)) <= " + distance + conversion_factor;
+          	if (map.hasLayer(projects)) {
+          		map.removeLayer(projects);
+          	};
+            
+            $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+closest_query, function(data) {
+              projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
+            });
 
+            map.setView([lat, lon], 15);
+            });
+  }
    
   function showCombined2() {
+      
 	  //Get unit bounds from user selections
 	  bounds = document.getElementById("unit_bounds").children;
-	  lower_bound = bounds[1].value;
-	  upper_bound = bounds[3].value;
+	  lower_bound = bounds[0].value;
+	  upper_bound = bounds[2].value;
       if (lower_bound != '' && upper_bound != '') {
           var unit_query = "AND net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
       } else if (lower_bound == '' && upper_bound !='') {
@@ -260,7 +305,7 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
       
 	  //Get project status from user selections
 	  proj_status = document.getElementById("statusSelect").value;
-	  if (proj_status == 'All Proposed') {
+	  if (proj_status == 'All') {
 	  	var statusvar = "";
 	  }
 	  else {
@@ -268,8 +313,8 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	  }
       
 	  //Get place name filter
-	  place_name = document.getElementById("placeSelect2").value;
-	  if (place_name == 'None') {
+	  place_name = document.getElementById("placeSelect").value;
+	  if (place_name == 'All') {
 	  	var placevar = "(SELECT * FROM table_41_neighborhoods)";
 	  }
 	  else {

@@ -85,7 +85,7 @@
   </br>
   <select class="selectpicker" data-live-search="true" id = "placeSelect">
     <option data-tokens="All" value = "All">All</option>
-    <optgroup label="Neighborhoods">
+    <optgroup label="Neighborhoods" title = "table_41_neighborhoods">
     <option data-tokens="Bayview Hunters Point" value = "Bayview Hunters Point">Bayview Hunters Point</option>
     <option data-tokens="Bernal Heights" value = "Bernal Heights">Bernal Heights</option>
     <option data-tokens="Castro/Upper Market" value = "Castro/Upper Market">Castro/Upper Market</option>
@@ -128,18 +128,53 @@
     <option data-tokens="Western Addition" value = "Western Addition">Western Addition</option>
     <option data-tokens="West of Twin Peaks" value = "West of Twin Peaks">West of Twin Peaks</option>
     </optgroup>
-    <optgroup label="Priority Development Areas">
+    <optgroup label="Priority Development Areas" title = "pdas">
     <option data-tokens="19th Avenue" value = "19th Avenue">19th Avenue</option>
     <option data-tokens="Balboa Park" value = "Balboa Park">Balboa Park</option>
     <option data-tokens="Bayview/Hunters Point Shipyard/Candlestick Point" value = "Bayview/Hunters Point Shipyard/Candlestick Point">Bayview/Hunters Point Shipyard/Candlestick Point</option>
     <option data-tokens="Downtown-Van Ness-Geary" value = "Downtown-Van Ness-Geary">Downtown-Van Ness-Geary</option>
     <option data-tokens="Eastern Neighborhoods" value = "Eastern Neighborhoods">Eastern Neighborhoods</option>
-    <option data-tokens="Market & Octavia" value = "Market & Octavia">Market & Octavia</option>
+    <option data-tokens="Market & Octavia" value = "Market %26 Octavia">Market & Octavia</option>
     <option data-tokens="Mission Bay" value = "Mission Bay">Mission Bay</option>
     <option data-tokens="Mission-San Jose Corridor" value = "Mission-San Jose Corridor">Mission-San Jose Corridor</option>
     <option data-tokens="Port of San Francisco" value = "Port of San Francisco">Port of San Francisco</option>
     <option data-tokens="Transit Center District" value = "Transit Center District">Transit Center District</option>
-    <option data-tokens="Treasure Island & Yerba Buena Island" value = "Treasure Island & Yerba Buena Island">Treasure Island & Yerba Buena Island</option>
+    <option data-tokens="Treasure Island & Yerba Buena Island" value = "Treasure Island %26 Yerba Buena Island">Treasure Island & Yerba Buena Island</option>
+    </optgroup>
+    <optgroup label='Area Plans' title='area_plans'>
+    <option data-tokens="Balboa Park" value = "Balboa Park">Balboa Park</option>
+    <option data-tokens="Bayshore Boulevard" value = "Bayshore Boulevard">Bayshore Boulevard</option>
+    <option data-tokens="Bayview Hunters Point" value = "Bayview Hunters Point">Bayview Hunters Point</option>
+    <option data-tokens="Candlestick Point" value = "Candlestick Point">Candlestick Point</option>
+    <option data-tokens="Central SoMa" value = "Central SoMa">Central SoMa</option>
+    <option data-tokens="Central Waterfront (EN)" value = "Central Waterfront (EN)">Central Waterfront (EN)</option>
+    <option data-tokens="Civic Center" value = "Civic Center">Civic Center</option>
+    <option data-tokens="Downtown" value = "Downtown">Downtown</option>
+    <option data-tokens="East SoMa (EN)" value = "East SoMa (EN)">East SoMa (EN)</option>
+    <option data-tokens="Executive Park" value = "Executive Park">Executive Park</option>
+    <option data-tokens="Fisherman's Wharf" value = "Fisherman's Wharf">Fisherman's Wharf</option>
+    <option data-tokens="Glen Park" value = "Glen Park">Glen Park</option>
+    <option data-tokens="Hunters Point Shipyard" value = "Hunters Point Shipyard">Hunters Point Shipyard</option>
+    <option data-tokens="India Basin Shoreline/Area C" value = "India Basin Shoreline/Area C">India Basin Shoreline/Area C</option>
+    <option data-tokens="Japantown" value = "Japantown">Japantown</option>
+    <option data-tokens="Market and Octavia" value = "Market and Octavia">Market and Octavia</option>
+    <option data-tokens="Mission Bay" value = "Mission Bay">Mission Bay</option>
+    <option data-tokens="Mission (EN)" value = "Mission (EN)">Mission (EN)</option>
+    <option data-tokens="Northeast Embarcadero Study" value = "Northeast Embarcadero Study">Northeast Embarcadero Study</option>
+    <option data-tokens="Northeast Waterfront" value = "Northeast Waterfront">Northeast Waterfront</option>
+    <option data-tokens="Parkmerced" value = "Parkmerced">Parkmerced</option>
+    <option data-tokens="Rincon Hill" value = "Rincon Hill">Rincon Hill</option>
+    <option data-tokens="Schlage Lock" value = "Schlage Lock">Schlage Lock</option>
+    <option data-tokens="Showplace Square/Potrero Hill (EN)" value = "Showplace Square/Potrero Hill (EN)">Showplace Square/Potrero Hill (EN)</option>
+    <option data-tokens="South of Market" value = "South of Market">South of Market</option>
+    <option data-tokens="Transbay" value = "Transbay">Transbay</option>
+    <option data-tokens="Transit Center District" value = "Transit Center District">Transit Center District</option>
+    <option data-tokens="Treasure Island" value = "Treasure Island">Treasure Island</option>
+    <option data-tokens="Van Ness Corridor" value = "Van Ness Corridor">Van Ness Corridor</option>
+    <option data-tokens="Western Shoreline" value = "Western Shoreline">Western Shoreline</option>
+    <option data-tokens="Western SoMa (EN)" value = "Western SoMa (EN)">Western SoMa (EN)</option>
+    <option data-tokens="Yerba Buena" value = "Yerba Buena">Yerba Buena</option>
+    </optgroup>
   </select>
   </br>
   <button onclick="showCombined2();">Update Map</button>
@@ -288,6 +323,21 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
   }
    
   function showCombined2() {
+      //Get correct_data_set
+      var place_group =$('#placeSelect :selected').parent().attr('title');
+      console.log(place_group);
+      
+      //Get correct variable name
+      if (place_group=='table_41_neighborhoods') {
+          var var_name = 'nhood';
+      }
+      else if (place_group == 'pdas') {
+          var var_name = 'name';
+      }
+      else if (place_group == 'area_plans') {
+          var var_name = 'planarea';
+      }
+
       
 	  //Get unit bounds from user selections
 	  bounds = document.getElementById("unit_bounds").children;
@@ -315,19 +365,22 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	  //Get place name filter
 	  place_name = document.getElementById("placeSelect").value;
 	  if (place_name == 'All') {
-	  	var placevar = "(SELECT * FROM table_41_neighborhoods)";
+          var placevar = "(SELECT * FROM table_41_neighborhoods)"; //choose 41 neighborhoods for this default option. Could be any polygons layer
 	  }
 	  else {
-	  	var placevar = "(SELECT * FROM table_41_neighborhoods WHERE nhood = '" + place_name + "')";
+	  	var placevar = "(SELECT * FROM " + place_group + " WHERE " + var_name + " = '" + place_name + "')";
 	  }
 	  
 	  if (map.hasLayer(projects)) {
 		  map.removeLayer(projects);
 	  };
+      
 	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.the_geom FROM current_data AS cd," + placevar + " AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + unit_query + statusvar;
       $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
         projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
       });
+      console.log(combined_query);
+      
   }
   
   

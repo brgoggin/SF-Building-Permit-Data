@@ -30,30 +30,22 @@
 	    left: 0;
 	    width: 70%;
 	  }
-	
-	.info {
-	    padding: 6px 8px;
-	    font: 14px/16px Arial, Helvetica, sans-serif;
-	    background: white;
-	    background: rgba(255,255,255,0.85);
-	    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-	    border-radius: 5px;
-		pointer-events: auto;
-	}
-	.info h4 {
-	    margin: 0 0 4px;
-	    color: #000;
-	}
     .selection_menu {
         position: absolute;
         right: 0px;
         width: 30%;
+        height: 100%;
+        background-color: #0E6698;
+        color: white;
     }
     
    .first_search {
         position: relative;
         left: 20px;
     }
+    .first_search h4 {
+         font-size: 150%;
+     }
     
   </style>
 </head>
@@ -61,11 +53,13 @@
   <div id='map'></div>
   <div class = "selection_menu">
   <div class="first_search">
-  <b> Select Project Attributes </b>
+  <h4><b> SF Development Pipeline Map</b></h4>
+  </br>
+  <h4><b> Select Project Attributes </b></h4>
   
   <form id ='unit_bounds'>
-      Minimum Units:<input type='text' value = ''></input>
-      </br>Maximimum Units:<input type='text' value = ''></input>
+      Minimum Units:<input type='text' value = '' style='color: black;'></input>
+      </br>Maximimum Units:<input type='text' value = '' style='color: black;'></input>
   </form>
 
   Project Status: <select class="selectpicker" data-live-search="true" id = "statusSelect">
@@ -81,8 +75,7 @@
          </optgroup>
      </select> </br>
   </br>
-  <b> Search by Place </b>
-  </br>
+  <h4><b> Search by Place </b></h4>
   <select class="selectpicker" data-live-search="true" id = "placeSelect">
     <option data-tokens="All" value = "All">All</option>
     <optgroup label="Neighborhoods" title = "table_41_neighborhoods">
@@ -175,15 +168,33 @@
     <option data-tokens="Western SoMa (EN)" value = "Western SoMa (EN)">Western SoMa (EN)</option>
     <option data-tokens="Yerba Buena" value = "Yerba Buena">Yerba Buena</option>
     </optgroup>
+    <optgroup label='Supervisor Districts' title='supervisor_districts'>
+        <option data-tokens="Supervisor District 1" value = "SUPERVISORIAL DISTRICT 1">Supervisor District 1</option>
+        <option data-tokens="Supervisor District 2" value = "SUPERVISORIAL DISTRICT 2">Supervisor District 2</option>
+        <option data-tokens="Supervisor District 3" value = "SUPERVISORIAL DISTRICT 3">Supervisor District 3</option>
+        <option data-tokens="Supervisor District 4" value = "SUPERVISORIAL DISTRICT 4">Supervisor District 4</option>
+        <option data-tokens="Supervisor District 5" value = "SUPERVISORIAL DISTRICT 5">Supervisor District 5</option>
+        <option data-tokens="Supervisor District 6" value = "SUPERVISORIAL DISTRICT 6">Supervisor District 6</option>
+        <option data-tokens="Supervisor District 7" value = "SUPERVISORIAL DISTRICT 7">Supervisor District 7</option>
+        <option data-tokens="Supervisor District 8" value = "SUPERVISORIAL DISTRICT 8">Supervisor District 8</option>
+        <option data-tokens="Supervisor District 9" value = "SUPERVISORIAL DISTRICT 9">Supervisor District 9</option>
+        <option data-tokens="Supervisor District 10" value = "SUPERVISORIAL DISTRICT 10">Supervisor District 10</option>
+        <option data-tokens="Supervisor District 11" value = "SUPERVISORIAL DISTRICT 11">Supervisor District 11</option>
+    </optgroup>
+        
   </select>
   </br>
-  <button onclick="showCombined2();">Update Map</button>
-  </br></br><b> Or by Address </b>
+  <button onclick="showCombined();">Update Map</button>
+  </br></br>
+  <h4><b> Or by Address </b></h4>
   <form id ='address_input'>
       Distance (In Miles): <input type='text' value = ''></input>
   </br>Address:<input type='text' value = ''></input>
   </form>
   </br><button onclick="addressSearch();">Update Map</button>
+  </div>
+  <div>
+      <img src="images/logo.jpg" alt="Logo" style="width:100%;height:100px;bottom: 0px; position: absolute;">
   </div>
   </div>
   
@@ -210,6 +221,7 @@
 // Global Variables
 // Will go here
 var projects = null;
+var polygon_layer = null;
 //specify what the circle markers should look like (radius and fill color are dynamically set later)
 var markerStyle = {radius: null, fillOpacity: 0.7, color: '#666666', opacity: 1, weight: 1, fillColor: null};
   
@@ -303,41 +315,6 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
       var distance = input[0].value.toString();
       var conversion_factor = "*1609.34"; //convert from miles to meters
       var address = input[2].value.toString();
-      var openStreetMapGeocoder = GeocoderJS.createGeocoder('openstreetmap');
-      openStreetMapGeocoder.geocode(address+', San Francisco, CA', function(result) {
-            var lat = result[0]['latitude'];
-            var lon = result[0]['longitude'];
-            
-            //Query by dots around above lat lon. Return all points within 0.25 miles (402.336 meters)
-            var closest_query = "SELECT * FROM current_data WHERE ST_Distance(ST_SetSRID(the_geom::geography, 4326), ST_SetSRID(ST_MakePoint(" + lon + "," + lat + ")::geography, 4326)) <= " + distance + conversion_factor;
-          	if (map.hasLayer(projects)) {
-          		map.removeLayer(projects);
-          	};
-            
-            $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+closest_query, function(data) {
-              projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
-            });
-
-            map.setView([lat, lon], 15);
-            });
-  }
-   
-  function showCombined2() {
-      //Get correct_data_set
-      var place_group =$('#placeSelect :selected').parent().attr('title');
-      console.log(place_group);
-      
-      //Get correct variable name
-      if (place_group=='table_41_neighborhoods') {
-          var var_name = 'nhood';
-      }
-      else if (place_group == 'pdas') {
-          var var_name = 'name';
-      }
-      else if (place_group == 'area_plans') {
-          var var_name = 'planarea';
-      }
-
       
 	  //Get unit bounds from user selections
 	  bounds = document.getElementById("unit_bounds").children;
@@ -362,6 +339,69 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	  	var statusvar = "AND status = '" + proj_status + "'";
 	  }
       
+      var openStreetMapGeocoder = GeocoderJS.createGeocoder('openstreetmap');
+      openStreetMapGeocoder.geocode(address+', San Francisco, CA', function(result) {
+            var lat = result[0]['latitude'];
+            var lon = result[0]['longitude'];
+            
+            //Query by dots around above lat lon. Return all points within 0.25 miles (402.336 meters)
+            var closest_query = "SELECT * FROM current_data WHERE ST_Distance(ST_SetSRID(the_geom::geography, 4326), ST_SetSRID(ST_MakePoint(" + lon + "," + lat + ")::geography, 4326)) <= " + distance + conversion_factor + unit_query + statusvar;
+      	    if (map.hasLayer(polygon_layer)) {
+      		    map.removeLayer(polygon_layer);
+      	    };
+          	if (map.hasLayer(projects)) {
+          		map.removeLayer(projects);
+          	};
+            
+            $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+closest_query, function(data) {
+              projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
+            });
+
+            map.setView([lat, lon], 15);
+            L.marker([lat, lon]).addTo(map);
+            });
+  }
+   
+  function showCombined() {
+	  //Get unit bounds from user selections
+	  bounds = document.getElementById("unit_bounds").children;
+	  lower_bound = bounds[0].value;
+	  upper_bound = bounds[2].value;
+      if (lower_bound != '' && upper_bound != '') {
+          var unit_query = "AND net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
+      } else if (lower_bound == '' && upper_bound !='') {
+          var unit_query = "AND net_units <= " + upper_bound.toString();
+      } else if (lower_bound != '' && upper_bound =='') {
+          var unit_query = "AND net_units >= " + lower_bound.toString();
+      } else {
+          var unit_query = "";
+      }
+      
+	  //Get project status from user selections
+	  proj_status = document.getElementById("statusSelect").value;
+	  if (proj_status == 'All') {
+	  	var statusvar = "";
+	  }
+	  else {
+	  	var statusvar = "AND status = '" + proj_status + "'";
+	  }
+      //Get correct_data_set
+      var place_group =$('#placeSelect :selected').parent().attr('title');
+      
+      //Get correct variable name
+      if (place_group=='table_41_neighborhoods') {
+          var var_name = 'nhood';
+      }
+      else if (place_group == 'pdas') {
+          var var_name = 'name';
+      }
+      else if (place_group == 'area_plans') {
+          var var_name = 'planarea';
+      }
+      else if (place_group == 'supervisor_districts') {
+          var var_name = 'supdist';
+      }
+      
 	  //Get place name filter
 	  place_name = document.getElementById("placeSelect").value;
 	  if (place_name == 'All') {
@@ -370,17 +410,28 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	  else {
 	  	var placevar = "(SELECT * FROM " + place_group + " WHERE " + var_name + " = '" + place_name + "')";
 	  }
-	  
+      
+      //remove any previous layers
+	  if (map.hasLayer(polygon_layer)) {
+		  map.removeLayer(polygon_layer);
+	  };
 	  if (map.hasLayer(projects)) {
 		  map.removeLayer(projects);
-	  };
-      
+	  }
+	
 	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.the_geom FROM current_data AS cd," + placevar + " AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + unit_query + statusvar;
       $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
         projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
       });
-      console.log(combined_query);
-      
+      //console.log(combined_query);
+	  
+      if (place_name != 'All') {
+          var layer_query = "SELECT the_geom FROM " + place_group + " WHERE " + var_name + " = '" + place_name + "'";
+          console.log(layer_query);
+          $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+layer_query, function(data) {
+            polygon_layer = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+          });
+      }
   }
   
   

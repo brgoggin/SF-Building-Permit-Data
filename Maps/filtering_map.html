@@ -17,6 +17,11 @@
     <!-- Geocoder-js from Github-->
     <script src="Packages/geocoder.js"></script>
     
+    <!--Google Maps API-->
+	<script async defer
+	        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAci6QXhBj6L47RIb8SxCgo1hho5jqHXBc&callback=initialize">
+	    </script>
+    
   <style>
 	  body { 
 	    margin: 0; 
@@ -46,6 +51,18 @@
     .first_search h4 {
          font-size: 150%;
      }
+     
+     #pano {
+         height: 50%;
+         color: #777;
+     	width: 200px;
+     	height: 200px;
+       }
+       
+     .description {
+       display: none;
+       	color: #777;
+     }
     
   </style>
 </head>
@@ -53,13 +70,14 @@
   <div id='map'></div>
   <div class = "selection_menu">
   <div class="first_search">
-  <h4><b> SF Development Pipeline Map</b></h4>
+  <h4 style = 'border: solid white;
+    border-radius: 5px; width: 80%'><b> SF Development Pipeline Map</b></h4>
   </br>
   <h4><b> Select Project Attributes </b></h4>
   
   <form id ='unit_bounds'>
-      Minimum Units:<input type='text' value = '' style='color: black;'></input>
-      </br>Maximimum Units:<input type='text' value = '' style='color: black;'></input>
+      Minimum Units: <input type='text' value = '' style='color: black;'></input>
+      </br>Maximimum Units: <input type='text' value = '' style='color: black;'></input>
   </form>
 
   Project Status: <select class="selectpicker" data-live-search="true" id = "statusSelect">
@@ -184,17 +202,17 @@
         
   </select>
   </br>
-  <button onclick="showCombined();">Update Map</button>
+  <button onclick="showCombined();" style='color: black;'>Update Map</button>
   </br></br>
   <h4><b> Or by Address </b></h4>
   <form id ='address_input'>
-      Distance (In Miles): <input type='text' value = ''></input>
-  </br>Address:<input type='text' value = ''></input>
+      Distance (In Miles): <input type='text' value = '' style='color: black;'></input>
+  </br>Address:<input type='text' value = '' style='color: black;'></input>
   </form>
-  </br><button onclick="addressSearch();">Update Map</button>
+  </br><button onclick="addressSearch();" style='color: black;'>Update Map</button>
   </div>
   <div>
-      <img src="images/logo.jpg" alt="Logo" style="width:100%;height:100px;bottom: 0px; position: absolute;">
+      <img src="images/logo.jpg" alt="Logo" style="width:100%;height:100px;bottom: 0px; position: absolute;"></img>
   </div>
   </div>
   
@@ -247,13 +265,11 @@ function getRadius() {
   
 // function to add data points to map layer with proper styling
 function pointToLayer(feature, latlng) {
-		markerStyle.fillColor = '#666666';
+		markerStyle.fillColor = '#0E6698';
 		markerStyle.radius = getRadius();
         return L.circleMarker(latlng, markerStyle);
 }
   
-  
-
 //test aggregate query (aggregate dots by polygons)
 //Aggregate dots by various polygons
 var aggregate_query = "SELECT pdas.name, pdas.the_geom, sum(current_data.net_units) FROM current_data, pdas WHERE ST_Intersects(current_data.the_geom, pdas.the_geom) GROUP BY pdas.name, pdas.the_geom";
@@ -274,18 +290,13 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
   var sqlQuery = "SELECT * FROM current_data";
 
 
-
-
-
-
-
   // Set CartoDB Username
   var cartoDBUserName = "bgoggin";
   // Function to add call coffee shops
   // Get CartoDB selection as GeoJSON and Add to Map
   function showAll(){
     $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+sqlQuery, function(data) {
-      projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+      projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
     });
   };
   
@@ -418,13 +429,7 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
 	  if (map.hasLayer(projects)) {
 		  map.removeLayer(projects);
 	  }
-	
-	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.the_geom FROM current_data AS cd," + placevar + " AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + unit_query + statusvar;
-      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
-        projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
-      });
-      //console.log(combined_query);
-	  
+      
       if (place_name != 'All') {
           var layer_query = "SELECT the_geom FROM " + place_group + " WHERE " + var_name + " = '" + place_name + "'";
           console.log(layer_query);
@@ -432,6 +437,13 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
             polygon_layer = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
           });
       }
+	
+	  var combined_query = "SELECT cd.address, cd.net_units, cd.status, cd.zoning_sim, cd.pln_desc, cd.the_geom FROM current_data AS cd," + placevar + " AS dd_nc WHERE ST_Intersects(cd.the_geom, dd_nc.the_geom) " + unit_query + statusvar;
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+combined_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature}).addTo(map);
+      });
+      
+	 
   }
   
   
@@ -449,11 +461,32 @@ function clickFeature(e) {
 
 	var popupContent ='<span class="popup-label"><b>' + props.address + '</b></span>' +
     '<br /><span class="popup-label">Net Units: ' + props.net_units + '</span>' +
-    '<br /><span class="popup-label">Status: ' + props.status + '</span>';
+    '<br /><span class="popup-label">Status: ' + props.status + '</span>' +
+    '<br /><span class="popup-label">Zoning: ' + props.zoning_sim + '</span>' +
+    '<div id = "pano" class = "pano"></div>' +
+    '<button>Show Description</button>' +
+    '<br /><span class="description">' + props.pln_desc + '</span>';
 	 
     var popup = L.popup({closeOnClick: false}).setContent(popupContent).setLatLng(latlng);
     target.bindPopup(popup).openPopup(); 
 	
+     //Google Panorama Element 
+     var panoelement = document.getElementsByClassName("pano");
+     var panorama = new google.maps.StreetViewPanorama(
+     	panoelement[panoelement.length - 1], {
+     		position: latlng,
+     		pov: {
+     			heading: 34,
+     			pitch: 10
+     		}, 
+     		addressControl: false
+     	});
+        
+		$("button").click(function(){
+			  $(".description").toggle();
+		 });
+	 //updates popup content so that toggling works when opening popup a second time in the same session
+	 target.updatePopup();
 }
   
   // Run showAll function automatically when document loads

@@ -342,8 +342,19 @@ var aggregate_query = "SELECT pdas.name, pdas.the_geom, sum(current_data.net_uni
 	    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
 	        layer.bringToFront();
 	    }
+        if (place_type == 'pdas') {
+            var title_type = props.name;
+        } else if (place_type == 'supervisor_districts') {
+            var title_type = props.supdist;
+        } else if (place_type == 'area_plans') {
+            var title_type = props.planarea;
+        } else if (place_type == 'table_41_neighborhoods') {
+            var title_type = props.nhood;
+        }
+        
 		var fill = document.getElementById("polygonFiller");
-        fill.innerHTML = "Net Units:" + props.net_units;
+        fill.innerHTML = place_title + ":" + title_type +
+        "</br>Net Units:" + props.net_units;
         //alert(props.net_units);
 	}
     
@@ -357,18 +368,29 @@ var aggregate_query = "SELECT pdas.name, pdas.the_geom, sum(current_data.net_uni
     
     if (place_type == 'pdas') {
         var place_name = 'name';
+        var place_title = 'PDA';
     } else if (place_type == 'supervisor_districts') {
         var place_name = 'supdist';
+        var place_title = 'District';
     } else if (place_type == 'area_plans') {
         var place_name = 'planarea';
+        var place_title = 'Area Plan';
     } else if (place_type == 'table_41_neighborhoods') {
         var place_name = 'nhood';
+        var place_title = 'Neighborhood';
     }
-    var aggregate_query = "SELECT " + place_type + "." + place_name + ", " + place_type + ".the_geom, coalesce(sum(points.net_units),0) AS net_units FROM " + place_type + " LEFT JOIN (SELECT * FROM current_data WHERE status = 'CONSTRUCTION') AS points ON ST_Intersects(" + place_type + ".the_geom, points.the_geom) GROUP BY " + place_type + ".the_geom, " + place_type + "." + place_name + ";"
     
-    console.log(aggregate_query);
-      //var aggregate_query = "SELECT pdas.name, pdas.the_geom, coalesce(sum(points.net_units),0) AS net_units FROM pdas LEFT JOIN (SELECT * FROM current_data WHERE status = 'CONSTRUCTION') AS points ON ST_Intersects(pdas.the_geom, points.the_geom) GROUP BY pdas.the_geom, pdas.name;"
-      
+    //Get project status from user selections
+    proj_status = document.getElementById("statusSelect").value;
+    if (proj_status == 'All') {
+        var statusvar = "WHERE status != 'nonsense'"; //value that doesn't exist in order to return everything
+    }
+    else {
+  	  var statusvar = "WHERE status = '" + proj_status + "'";
+    }
+    
+    var aggregate_query = "SELECT " + place_type + "." + place_name + ", " + place_type + ".the_geom, coalesce(sum(points.net_units),0) AS net_units FROM " + place_type + " LEFT JOIN (SELECT * FROM current_data " + statusvar + ") AS points ON ST_Intersects(" + place_type + ".the_geom, points.the_geom) GROUP BY " + place_type + ".the_geom, " + place_type + "." + place_name + ";"
+    
 	  if (map.hasLayer(projects)) {
 		  map.removeLayer(projects);
 	  };

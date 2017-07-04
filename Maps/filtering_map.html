@@ -19,7 +19,7 @@
     
     <!--Google Maps API-->
 	<script async defer
-	        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAci6QXhBj6L47RIb8SxCgo1hho5jqHXBc&callback=initialize">
+	        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAci6QXhBj6L47RIb8SxCgo1hho5jqHXBc">
 	    </script>
     
   <style>
@@ -207,9 +207,19 @@
   <h4><b> Or by Address </b></h4>
   <form id ='address_input'>
       Distance (In Miles): <input type='text' value = '' style='color: black;'></input>
-  </br>Address:<input type='text' value = '' style='color: black;'></input>
+  </br>Address: <input type='text' value = '' style='color: black;'></input>
   </form>
   </br><button onclick="addressSearch();" style='color: black;'>Update Map</button>
+  </br><select class="selectpicker" data-live-search="true" id = "placeSelectAggregate">
+      <option data-tokens="Priority Development Areas" value = "pdas">Priority Development Areas</option>
+      <option data-tokens="41 Neighborhoods" value = "table_41_neighborhoods">41 Neighborhoods</option>
+      <option data-tokens="Supervisor Districts" value = "supervisor_districts">Supervisor Districts</option>
+      <option data-tokens="Area Plans" value = "area_plans">Area Plans</option>
+  </select>
+  <div class = "info" id = "polygonFiller">
+      
+  </div>
+  </br><button onclick="showAggregate();" style='color: black;'>Show Aggregate</button>
   </div>
   <div>
       <img src="images/logo.jpg" alt="Logo" style="width:100%;height:100px;bottom: 0px; position: absolute;"></img>
@@ -273,22 +283,12 @@ function pointToLayer(feature, latlng) {
 //test aggregate query (aggregate dots by polygons)
 //Aggregate dots by various polygons
 var aggregate_query = "SELECT pdas.name, pdas.the_geom, sum(current_data.net_units) FROM current_data, pdas WHERE ST_Intersects(current_data.the_geom, pdas.the_geom) GROUP BY pdas.name, pdas.the_geom";
-  
-  
-  //test POSTGIS to select projects in the Mission Neighborhood (41 Neighborhoods shapefile)
-//This one works. Have to explicitly list columns because some columns are ambiguous between two datasets (?)
-var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current_data, (SELECT * FROM table_41_neighborhoods WHERE nhood = 'Mission') AS dd_nc WHERE ST_Intersects(current_data.the_geom, dd_nc.the_geom)";
 
-
-//Reverse of the above, seems to return every polygon. Interesting...
-//var mission_query = "SELECT table_41_neighborhoods.the_geom FROM table_41_neighborhoods, (SELECT * FROM current_data) AS dd_nc WHERE ST_Intersects(dd_nc.the_geom, table_41_neighborhoods.the_geom)";
-  
-  //Query by closest 5 dots to a give point (Web Mercator Projection)
-  var closest_query = "SELECT * FROM current_data ORDER BY ST_SetSRID(the_geom, 4326) <-> ST_SetSRID(ST_MakePoint(-122.424777, 37.764063), 4326) LIMIT 5";
-  
+//this one works while also specifying attributes to sum
+//var aggregate_query2 = "SELECT pdas.name, pdas.the_geom, coalesce(sum(points.net_units),0) AS sum FROM pdas LEFT JOIN (SELECT * FROM current_data WHERE status = 'CONSTRUCTION') AS points ON ST_Intersects(pdas.the_geom, points.the_geom) GROUP BY pdas.the_geom, pdas.name;"
+   
   // Get all development projects from dataset
   var sqlQuery = "SELECT * FROM current_data";
-
 
   // Set CartoDB Username
   var cartoDBUserName = "bgoggin";
@@ -301,25 +301,90 @@ var nhb_query = "SELECT current_data.address, current_data.the_geom FROM current
   };
   
   
-  function showClosest() {
+  
+  
+  
+  
+  
+  function showAggregate() {
+      
+  	function style(feature) {
+
+  	    return {
+  	        fillColor: 'blue',
+  	        weight: 2,
+  	        opacity: 1,
+  	        color: 'black',
+  	        dashArray: '3',
+  	        fillOpacity: 0.7
+  	    };
+  	}
+      
+  	function onEachFeature(feature, layer) {
+  	    layer.on({
+	        mouseover: highlightFeature,
+	        mouseout: resetHighlight
+  	    });
+  	}
+    
+	function highlightFeature(e) {
+        layer = e.target;
+        var props = e.target.feature.properties;
+
+	    layer.setStyle({
+	        weight: 5,
+	        color: 'black',
+	        dashArray: '',
+	        fillOpacity: 0.7
+	    });
+
+		// do not perform web highlighting in the given web browsers
+	    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+	        layer.bringToFront();
+	    }
+		var fill = document.getElementById("polygonFiller");
+        fill.innerHTML = "Net Units:" + props.net_units;
+        //alert(props.net_units);
+	}
+    
+	function resetHighlight(e) {
+        var layer = e.target;
+	    projects.resetStyle(e.target);
+		//info.update();
+	}
+    
+    var place_type = document.getElementById("placeSelectAggregate").value;
+    
+    if (place_type == 'pdas') {
+        var place_name = 'name';
+    } else if (place_type == 'supervisor_districts') {
+        var place_name = 'supdist';
+    } else if (place_type == 'area_plans') {
+        var place_name = 'planarea';
+    } else if (place_type == 'table_41_neighborhoods') {
+        var place_name = 'nhood';
+    }
+    var aggregate_query = "SELECT " + place_type + "." + place_name + ", " + place_type + ".the_geom, coalesce(sum(points.net_units),0) AS net_units FROM " + place_type + " LEFT JOIN (SELECT * FROM current_data WHERE status = 'CONSTRUCTION') AS points ON ST_Intersects(" + place_type + ".the_geom, points.the_geom) GROUP BY " + place_type + ".the_geom, " + place_type + "." + place_name + ";"
+    
+    console.log(aggregate_query);
+      //var aggregate_query = "SELECT pdas.name, pdas.the_geom, coalesce(sum(points.net_units),0) AS net_units FROM pdas LEFT JOIN (SELECT * FROM current_data WHERE status = 'CONSTRUCTION') AS points ON ST_Intersects(pdas.the_geom, points.the_geom) GROUP BY pdas.the_geom, pdas.name;"
+      
 	  if (map.hasLayer(projects)) {
 		  map.removeLayer(projects);
 	  };
-      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+closest_query, function(data) {
-        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
+     
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+aggregate_query, function(data) {
+        projects = L.geoJson(data, {pointToLayer: pointToLayer, onEachFeature: onEachFeature, style: style}).addTo(map);
       });
 	
   }
   
-  function showAggregate() {
-	  if (map.hasLayer(projects)) {
-		  map.removeLayer(projects);
-	  };
-      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+aggregate_query, function(data) {
-        projects = L.geoJson(data, {pointToLayer: pointToLayer}).addTo(map);
-      });
-	
-  }
+  
+  
+  
+  
+  
+  
   
   function addressSearch() {
       var input = document.getElementById("address_input").children;
@@ -486,7 +551,7 @@ function clickFeature(e) {
 			  $(".description").toggle();
 		 });
 	 //updates popup content so that toggling works when opening popup a second time in the same session
-	 target.updatePopup();
+	 //target.updatePopup();
 }
   
   // Run showAll function automatically when document loads

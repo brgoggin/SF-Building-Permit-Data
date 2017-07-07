@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+    <title>Basic Example</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+    <!-- Bootstrap Select CSS and JS files-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+    
+    <!-- Geocoder-js from Github-->
+    <script src="Packages/geocoder.js"></script>
+    
+    <!--Google Maps API-->
+	<script async defer
+	        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAci6QXhBj6L47RIb8SxCgo1hho5jqHXBc">
+	    </script>
+    
+  <style>
+	  body { 
+	    margin: 0; 
+	    padding: 0; 
+	    font-family: Helvetica, sans-serif;
+	  }
+	  #map {
+	    position: absolute;
+	    top: 0;
+	    bottom: 0;
+	    left: 0;
+	    width: 70%;
+	  }
+    .selection_menu {
+        position: absolute;
+        right: 0px;
+        width: 30%;
+        height: 100%;
+        background-color: #0E6698;
+        color: white;
+    }
+    
+   .first_search {
+        position: relative;
+        left: 20px;
+    }
+    .first_search h4 {
+         font-size: 150%;
+     }
+     
+     .info {
+         font-weight: bold;
+     }
+    
+  </style>
+</head>
+<body>
+  <div id='map'></div>
+  <div class = "selection_menu">
+  <div class="first_search">
+  <h4 style = 'width: 80%'><b> SF Development Pipeline Map</b></h4>
+  </br>
+  <h4><b> Step 1. Select Project Attributes </b></h4>
+  
+  <form id ='unit_bounds'>
+      Minimum Units: <input type='text' value = '' style='color: black;'></input>
+      </br>Maximimum Units: <input type='text' value = '' style='color: black;'></input>
+  </form>
+
+  Project Status: <select class="selectpicker" data-live-search="true" id = "statusSelect">
+         <optgroup label="Currently Proposed (Q1 2017)">
+         <option data-tokens="All" value = "All">All</option>
+         <option data-tokens="Under Construction" value = "CONSTRUCTION">Under Construction</option>
+         <option data-tokens="PL Approved" value = "PL APPROVED">PL Approved</option>
+         <option data-tokens="PL Filed" value = "PL FILED">PL Filed</option>
+         <option data-tokens="BP Issued" value = "BP ISSUED">BP Issued</option>
+         <option data-tokens="BP Approved" value = "BP APPROVED">BP Approved</option>
+         <option data-tokens="BP Filed" value = "BP FILED">BP Filed</option>
+         <option data-tokens="BP Reinstated" value = "BP REINSTATED">BP Reinstated</option>
+         </optgroup>
+     </select> </br>
+     <h4><b>Step 2. Select Place Type</b></h4>
+  <select class="selectpicker" data-live-search="true" id = "placeSelectAggregate">
+      <option data-tokens="Priority Development Areas" value = "pdas2" selected>Priority Development Areas</option>
+      <option data-tokens="41 Neighborhoods" value = "neighborhoods_41">41 Neighborhoods</option>
+      <option data-tokens="Supervisor Districts" value = "supervisor_districts">Supervisor Districts</option>
+      <option data-tokens="Area Plans" value = "area_plans">Area Plans</option>
+  </select>
+  <div class = "info" id = "polygonFiller">
+      Hover Over a Place to Show Aggregate Figures
+  </div>
+  </br><button onclick="showAggregate();" style='color: black;'>Update Map</button>
+  </div>
+  <div>
+      <img src="images/logo.jpg" alt="Logo" style="width:100%;height:100px;bottom: 0px; position: absolute;"></img>
+  </div>
+  </div>
+  
+<script type="text/javascript">
+	
+    //Initiate bounds variables
+    var bounds =  null;
+	//initiating with very wide bounds to return everything
+    var lower_bound = -100;
+    var upper_bound = 3000;
+	//Initiate status vars
+	var proj_status = null;
+    var place_name = null;
+  
+ // create the Leaflet map container
+  var map = L.map('map').setView([37.767, -122.441042], 12.3);
+  
+  //add tile layer basemap to the map
+  var basemapUrl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+  var basemapAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>';
+  var basemapProperties = {minZoom: 2, maxZoom: 16, attribution: basemapAttribution};
+  L.tileLayer(basemapUrl, basemapProperties).addTo(map);
+  
+// Global Variables
+// Will go here
+var projects = null;
+var polygon_layer = null;
+
+if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+	var initialZoomLevel = 12;
+} else {
+	var initialZoomLevel = 10;
+}
+
+ 
+  // Set CartoDB Username
+  var cartoDBUserName = "bgoggin";
+  
+
+  
+  function showAggregate() {
+      
+  	function style(feature) {
+
+  	    return {
+  	        fillColor: '#0E6698',
+  	        weight: 2,
+  	        opacity: 1,
+  	        color: 'black',
+  	        dashArray: '3',
+  	        fillOpacity: 1
+  	    };
+  	}
+      
+  	function onEachFeature(feature, layer) {
+  	    layer.on({
+	        mouseover: highlightFeature,
+	        mouseout: resetHighlight
+  	    });
+  	}
+    
+	function highlightFeature(e) {
+        layer = e.target;
+        var props = e.target.feature.properties;
+
+	    layer.setStyle({
+	        weight: 5,
+	        color: 'black',
+	        dashArray: '',
+	        fillOpacity: 0.7
+	    });
+
+		// do not perform web highlighting in the given web browsers
+	    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+	        layer.bringToFront();
+	    }
+        if (place_type == 'pdas2') {
+            var title_type = props.name;
+        } else if (place_type == 'supervisor_districts') {
+            var title_type = props.supdist;
+        } else if (place_type == 'area_plans') {
+            var title_type = props.planarea;
+        } else if (place_type == 'neighborhoods_41') {
+            var title_type = props.nhood;
+        }
+        
+		var fill = document.getElementById("polygonFiller");
+        fill.innerHTML = place_title + ": " + title_type +
+        "</br>Net Units: " + props.net_units.toLocaleString() + 
+        "</br>Net Affordable Units: " + props.aff_units.toLocaleString() +
+        "</br>Net Non-Residential GSF: " + props.net_gsf.toLocaleString()+ 
+        "</br>Net CIE GSF: " + props.net_cie.toLocaleString() +
+        "</br>Net MED GSF: " + props.net_med.toLocaleString() +
+        "</br>Net MIPS GSF: " + props.net_mips.toLocaleString() +
+        "</br>Net PDR GSF: " + props.net_pdr.toLocaleString() +
+        "</br>Net RET GSF: " + props.net_ret.toLocaleString() +
+        "</br>Net VISIT GSF: " + props.net_visit.toLocaleString();
+	}
+    
+	function resetHighlight(e) {
+        var layer = e.target;
+	    projects.resetStyle(e.target);
+        var fill = document.getElementById("polygonFiller");
+        fill.innerHTML = 'Hover Over a Place to Show Aggregate Figures';
+		//info.update();
+	}
+    
+    var place_type = document.getElementById("placeSelectAggregate").value;
+    
+    if (place_type == 'pdas2') {
+        var place_name = 'name';
+        var place_title = 'PDA';
+    } else if (place_type == 'supervisor_districts') {
+        var place_name = 'supdist';
+        var place_title = 'District';
+    } else if (place_type == 'area_plans') {
+        var place_name = 'planarea';
+        var place_title = 'Area Plan';
+    } else if (place_type == 'neighborhoods_41') {
+        var place_name = 'nhood';
+        var place_title = 'Neighborhood';
+    }
+    
+    //Get project status from user selections
+    proj_status = document.getElementById("statusSelect").value;
+    if (proj_status == 'All') {
+        var statusvar = "WHERE status != 'nonsense'"; //value that doesn't exist in order to return everything
+    }
+    else {
+  	  var statusvar = "WHERE status = '" + proj_status + "'";
+    }
+    
+    //Get unit bounds from user selections
+    bounds = document.getElementById("unit_bounds").children;
+    lower_bound = bounds[0].value;
+    upper_bound = bounds[2].value;
+    if (lower_bound != '' && upper_bound != '') {
+        var unit_query = "AND net_units BETWEEN " + lower_bound.toString() + " AND " + upper_bound.toString();
+    } else if (lower_bound == '' && upper_bound !='') {
+        var unit_query = "AND net_units <= " + upper_bound.toString();
+    } else if (lower_bound != '' && upper_bound =='') {
+        var unit_query = "AND net_units >= " + lower_bound.toString();
+    } else {
+        var unit_query = "";
+    }
+    
+    var aggregate_query = "SELECT " + place_type + "." + place_name + ", " + place_type + ".the_geom, coalesce(sum(points.net_units),0) AS net_units, coalesce(sum(points.aff_units),0) AS aff_units, coalesce(sum(points.net_gsf),0) AS net_gsf, coalesce(sum(points.net_cie),0) AS net_cie, coalesce(sum(points.net_med),0) AS net_med, coalesce(sum(points.net_mips),0) AS net_mips, coalesce(sum(points.net_pdr),0) AS net_pdr, coalesce(sum(points.net_ret),0) AS net_ret, coalesce(sum(points.net_visit),0) AS net_visit  FROM " + place_type + " LEFT JOIN (SELECT * FROM current_data " + statusvar + 
+    unit_query + ") AS points ON ST_Intersects(" + place_type + ".the_geom, points.the_geom) GROUP BY " + place_type + ".the_geom, " + place_type + "." + place_name + ";"
+    
+	  if (map.hasLayer(projects)) {
+		  map.removeLayer(projects);
+	  };
+     
+      $.getJSON("https://"+cartoDBUserName+".cartodb.com/api/v2/sql?format=GeoJSON&q="+aggregate_query, function(data) {
+        projects = L.geoJson(data, {onEachFeature: onEachFeature, style: style}).addTo(map);
+      });
+	
+  }
+  
+  // Run showAll function automatically when document loads
+  $(document).ready(function() {
+    showAggregate();
+  });
+  
+</script>
+
+</body>
+</html>
